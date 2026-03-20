@@ -6,7 +6,7 @@ This repository **is** the Agent Kit framework. It is not a project built with t
 
 Agent Kit is a process framework for LLM-assisted software development. It provides a structured process (lenses, gates, artifacts) and a learning mechanism (domain profiles) that accumulates knowledge across projects.
 
-When someone copies `agent-kit/` into their own repository and points `AGENTS.md` at `BUILDER.md`, any LLM can follow the process to build software with verification and domain-specific knowledge.
+When someone copies `framework/` into their own repository and points `AGENTS.md` at `BUILDER.md`, any LLM can follow the process to build software with verification and domain-specific knowledge.
 
 ## Repository structure
 
@@ -17,19 +17,29 @@ When someone copies `agent-kit/` into their own repository and points `AGENTS.md
 ├── GUIDE.md                     # Tutorial: step-by-step first project walkthrough
 ├── LICENSE                      # MIT
 │
-├── agent-kit/                   # THE FRAMEWORK (this is what gets copied to target repos)
+├── framework/                   # THE FRAMEWORK (this is what gets copied to target repos)
 │   ├── BUILDER.md               # Process contract — the LLM reads and follows this
 │   ├── README.md                # Technical reference — gates, artifacts, contracts
+│   ├── VERSION                  # Framework version for tracking updates
 │   ├── domains/
 │   │   ├── _template.md         # Template for creating new domain profiles
-│   │   ├── README.md            # How domain profiles work
-│   │   └── apps-sdk-mcp-lit-vite.md  # Real example profile (11 pitfalls, 7 adversary Qs)
+│   │   └── README.md            # How domain profiles work
 │   └── templates/
 │       ├── INTENT.md            # Template: what and why
 │       ├── DESIGN.md            # Template: how (architecture, decisions, risks)
 │       └── VERIFICATION_LOG-template.md  # Template: proof (gate output, progress)
+│
+├── catalog/                     # Community-contributed domain profiles
+│   ├── README.md                # How to use and contribute profiles
+│   ├── apps-sdk-mcp-lit-vite.md # Real profile (11 pitfalls, 7 adversary Qs)
+│   └── web-kinu-preact-vite.md  # Real profile (4 pitfalls, 4 adversary Qs)
+│
+├── examples/                    # Real project artifacts showing the framework in action
+│   ├── mcp-task-widget/         # Complete example with intent, design, verification
+│   ├── logistics-control-tower/ # Full-sized project prompt
+│   └── test-habit-tracker/      # Spanish-language prompt example
+│
 └── docs/                        # Would hold generated artifacts in a real project
-    └── .gitkeep
 ```
 
 ## Framework concepts
@@ -55,7 +65,9 @@ The LLM determines project size (Quick / Standard / Full), then follows a struct
 
 ### Domain profiles (the differentiator)
 
-Domain profiles are living documents in `agent-kit/domains/`. They accumulate stack-specific knowledge — pitfalls, adversary questions, automated checks, decision history. Every gate failure becomes a new pitfall. Every project makes the next one better.
+Domain profiles are living documents in `framework/domains/`. They accumulate stack-specific knowledge — pitfalls, adversary questions, automated checks, decision history. Every gate failure becomes a new pitfall. Every project makes the next one better.
+
+Community-contributed profiles live in `catalog/`. Copy relevant ones into your project's `framework/domains/`.
 
 A profile contains: Selection Metadata, Terminology Mapping, Verification Commands, Common Pitfalls, Adversary Questions, Integration Rules, Automated Checks, Decision History, Review Checklist.
 
@@ -83,7 +95,7 @@ Each verification log has a Progress table at the top. When a session is interru
 |----------|------|--------|
 | `README.md` | Explanation | Understanding — what and why |
 | `GUIDE.md` | Tutorial | Learning — step-by-step first project |
-| `agent-kit/README.md` | Reference | Information — specs, contracts, definitions |
+| `framework/README.md` | Reference | Information — specs, contracts, definitions |
 | `BUILDER.md` | Reference | Information — the process contract (for LLMs) |
 
 ## When modifying the framework
@@ -91,8 +103,9 @@ Each verification log has a Progress table at the top. When a session is interru
 - `BUILDER.md` is the source of truth for the process. Changes here affect how every LLM behaves.
 - Domain profile `_template.md` defines what new profiles look like. Changes propagate to all future profiles.
 - Template changes (`templates/*.md`) affect artifact structure for all future projects.
-- `README.md`, `GUIDE.md`, and `agent-kit/README.md` must stay aligned with `BUILDER.md`. If the process changes, the docs must reflect it.
+- `README.md`, `GUIDE.md`, and `framework/README.md` must stay aligned with `BUILDER.md`. If the process changes, the docs must reflect it.
 - Examples in `examples/` are historical artifacts — do not modify them to match framework changes.
+- Catalog profiles in `catalog/` are contributed by the community — review for quality but preserve the contributor's learnings.
 
 ## Conventions
 

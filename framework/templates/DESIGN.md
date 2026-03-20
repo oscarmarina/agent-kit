@@ -1,7 +1,7 @@
 # Design: [Project Name]
 
 **Intent:** docs/[project]-intent.md
-**Domain Profile:** agent-kit/domains/[profile].md
+**Domain Profile:** framework/domains/[profile].md
 **Date:** [Date]
 
 ## Domain Profile Selection Rationale

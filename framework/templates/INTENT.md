@@ -2,7 +2,7 @@
 
 **Date:** [Date]
 **Size:** [Quick / Standard / Full]
-**Domain Profile:** [Reference to agent-kit/domains/ profile, or "New — will be created"]
+**Domain Profile:** [Reference to framework/domains/ profile, or "New — will be created"]
 **Supersedes:** [Reference to previous Intent if this reworks an existing feature, or "—"]
 
 ## Goal

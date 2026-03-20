@@ -164,11 +164,16 @@ The framework is LLM-agnostic. Any model that can read markdown and follow instr
 
 See [**GUIDE.md**](GUIDE.md) for a step-by-step tutorial on setting up and using Agent Kit.
 
-See [**agent-kit/README.md**](agent-kit/README.md) for the technical reference — file descriptions, gate definitions, artifact specs, and the domain profile contract.
+See [**framework/README.md**](framework/README.md) for the technical reference — file descriptions, gate definitions, artifact specs, and the domain profile contract.
 
 ## Included examples
 
-**Domain profile:** [`agent-kit/domains/apps-sdk-mcp-lit-vite.md`](agent-kit/domains/apps-sdk-mcp-lit-vite.md) — A real domain profile built across multiple projects with [Apps SDK](https://developers.openai.com/apps-sdk/quickstart) + Lit + Vite. 11 pitfalls, 7 adversary questions, automated checks, and decision history — all learned from real bugs. Shows what a mature profile looks like after the flywheel has turned a few times.
+**Domain profiles:** The [`catalog/`](catalog/) directory contains community-contributed domain profiles built from real projects:
+
+- [`apps-sdk-mcp-lit-vite.md`](catalog/apps-sdk-mcp-lit-vite.md) — MCP Apps + Lit + Vite. 11 pitfalls, 7 adversary questions. Shows what a mature profile looks like after the flywheel has turned.
+- [`web-kinu-preact-vite.md`](catalog/web-kinu-preact-vite.md) — Kinu + Preact + Vite. 4 pitfalls, 4 adversary questions.
+
+Copy any relevant profile from `catalog/` into your project's `framework/domains/` to start with accumulated knowledge.
 
 
 ## License

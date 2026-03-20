@@ -13,25 +13,26 @@
 
 ## Setup
 
-1. Copy `agent-kit/` into the target repo.
+1. Copy `framework/` into the target repo.
 2. Create `AGENTS.md` at the repo root:
    ```markdown
    # Agent Instructions
 
-   Read and follow `agent-kit/BUILDER.md` for all tasks.
+   Read and follow `framework/BUILDER.md` for all tasks.
 
    Project artifacts (intent, design, verification) go in `docs/`.
    ```
 3. Create `docs/` for project-specific artifacts.
-4. Either bring an existing domain profile or let the Builder create one during the first project.
+4. Copy any relevant profile from the [catalog](../catalog/) into `framework/domains/`, or let the Builder create one during the first project.
 
 Resulting structure:
 
 ```
 repo/
 ├── AGENTS.md               ← entry point (5 lines)
-├── agent-kit/              ← framework (reusable)
+├── framework/              ← framework (reusable)
 │   ├── BUILDER.md
+│   ├── VERSION
 │   ├── domains/
 │   └── templates/
 ├── docs/                   ← project artifacts (intent, design, verification)
@@ -155,7 +156,7 @@ One log per project. Completed logs remain as historical evidence.
 
 ## Domain profile selection contract
 
-1. Build candidates from `agent-kit/domains/*.md`, excluding `_template.md` and `README.md`
+1. Build candidates from `framework/domains/*.md`, excluding `_template.md` and `README.md`
 2. Read each candidate's metadata: `Profile ID`, `Match Keywords`, `Use When`, `Do Not Use When`
 3. Exclude profiles where `Do Not Use When` matches explicit user constraints
 4. Score remaining profiles by keyword overlap with prompt/stack (`+1` per keyword hit)

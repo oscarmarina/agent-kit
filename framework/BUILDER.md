@@ -48,7 +48,7 @@ Apply the domain profile's accumulated knowledge:
 - Follow Integration Rules exactly
 - Use domain-specific terminology and verification commands
 - Run Automated Checks from the domain profile mechanically
-- If no domain profile exists, create one using `agent-kit/domains/_template.md`
+- If no domain profile exists, create one using `framework/domains/_template.md`
 
 ## Process (Scaled by Size)
 
@@ -59,7 +59,7 @@ Apply the domain profile's accumulated knowledge:
 
 ### Standard (feature-sized)
 1. Capture Intent (extract or create CIR from prompt → `docs/[project]-intent.md`)
-2. Load domain profile from `agent-kit/domains/` — then **read every Common Pitfall and Adversary Question** before proceeding. These inform the design; loading without reading is useless.
+2. Load domain profile from `framework/domains/` — then **read every Common Pitfall and Adversary Question** before proceeding. These inform the design; loading without reading is useless.
 3. Design — all lenses in one pass → `docs/[project]-design.md`. The design MUST include both "Adversary Questions Applied" (answers to each profile question against this specific design) and "Domain Pitfalls Applied" (how each pitfall is addressed). These are separate sections — checking pitfalls does not replace answering adversary questions.
 4. Gated build (Gate 0 → Gate 1 → Gate 2 per feature phase)
 5. Tests + verification (Gate 3 → Gate 4)
@@ -124,18 +124,18 @@ Domain profiles are the learning mechanism. They accumulate knowledge across pro
 
 ### Loading
 Use this deterministic selection protocol:
-1. Build candidates from `agent-kit/domains/*.md`, excluding `_template.md` and `README.md`.
+1. Build candidates from `framework/domains/*.md`, excluding `_template.md` and `README.md`.
 2. Read each candidate's selection metadata: `Profile ID`, `Match Keywords`, `Use When`, `Do Not Use When`.
 3. Exclude profiles where any `Do Not Use When` condition matches explicit user constraints.
 4. Score remaining profiles by keyword overlap with the prompt and declared stack (`+1` per matched keyword).
 5. Select the highest score only if it is unique and `>= 2`.
-6. If tied or below threshold, ask the human which profile to use. If no clarification is available, create a new profile from `agent-kit/domains/_template.md` instead of forcing a weak match.
+6. If tied or below threshold, ask the human which profile to use. If no clarification is available, create a new profile from `framework/domains/_template.md` instead of forcing a weak match.
 7. Record the selected profile and matching rationale in the Design document.
 
 If a profile is selected, it overrides generic assumptions for: terminology, verification commands, pitfalls, integration rules, automated checks, and decision history.
 
 ### Creating
-If no profile exists for the stack, create one using `agent-kit/domains/_template.md`. Minimum viable profile: Terminology Mapping + Verification Commands + at least 2 Common Pitfalls.
+If no profile exists for the stack, create one using `framework/domains/_template.md`. Minimum viable profile: Terminology Mapping + Verification Commands + at least 2 Common Pitfalls.
 
 ### Updating
 
@@ -156,7 +156,7 @@ What to update:
 ## Artifacts
 
 ### Change Intent Record (`docs/[project]-intent.md`)
-Captures WHY, expected BEHAVIOR, and CONSTRAINTS. Human-authored or extracted from prompt. Source of truth for scope and decisions. Template: `agent-kit/templates/INTENT.md`
+Captures WHY, expected BEHAVIOR, and CONSTRAINTS. Human-authored or extracted from prompt. Source of truth for scope and decisions. Template: `framework/templates/INTENT.md`
 
 Key sections:
 - **Goal** — What and why (1-2 sentences)
@@ -166,10 +166,10 @@ Key sections:
 - **Supersedes** — If this reworks an existing feature, reference the previous Intent. The old Intent remains as historical record but is no longer active
 
 ### Design Document (`docs/[project]-design.md`)
-Architecture + decisions + risks + domain profile selection rationale in one document. Replaces separate PRD, Tech Spec, Review, and Implementation Plan. Template: `agent-kit/templates/DESIGN.md`
+Architecture + decisions + risks + domain profile selection rationale in one document. Replaces separate PRD, Tech Spec, Review, and Implementation Plan. Template: `framework/templates/DESIGN.md`
 
 ### Verification Log (`docs/[project]-verification.md`)
-Mechanical proof. Every gate execution with real output. Source of truth for "does it work?" and "where did we stop?". One file per project — completed logs remain as historical evidence. Template: `agent-kit/templates/VERIFICATION_LOG-template.md`
+Mechanical proof. Every gate execution with real output. Source of truth for "does it work?" and "where did we stop?". One file per project — completed logs remain as historical evidence. Template: `framework/templates/VERIFICATION_LOG-template.md`
 
 Key sections:
 - **Progress** — Summary table at the top. Updated after every gate or phase transition. This is how interrupted work resumes — read Progress first, then continue from the last completed step.
@@ -225,5 +225,5 @@ If no verification log exists, look for intent and design docs in `docs/` to und
 - When the human says "never X", that's a CONSTRAINT — capture it in the Intent AND propose a domain profile update if it applies stack-wide.
 - Don't create files that aren't needed. Prefer editing existing files.
 - Don't over-engineer. The right amount of complexity is the minimum needed for the current task.
-- **Project code goes in its own directory** — not at the repository root. Name the directory after the project (e.g., `mcp-task-widget/`). Config files (`package.json`, `tsconfig.json`, `vite.config.ts`, etc.), source code, and build output belong inside this directory. The repo root is reserved for `AGENTS.md`, `agent-kit/`, and `docs/`.
+- **Project code goes in its own directory** — not at the repository root. Name the directory after the project (e.g., `mcp-task-widget/`). Config files (`package.json`, `tsconfig.json`, `vite.config.ts`, etc.), source code, and build output belong inside this directory. The repo root is reserved for `AGENTS.md`, `framework/`, and `docs/`.
 - **Every bug fix must update the domain profile.** If you fix a problem caused by a missing pitfall, incorrect integration rule, or wrong assumption — add it to the domain profile in the same commit. A fix without a domain profile update means the same mistake can happen again in the next project.

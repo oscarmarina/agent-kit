@@ -13,7 +13,7 @@ In this tutorial, we will set up Agent Kit in a new repository and use it to bui
 Copy three things into your repository's root:
 
 ```bash
-cp -R agent-kit/ your-repo/agent-kit/
+cp -R framework/ your-repo/framework/
 cp AGENTS.md your-repo/
 mkdir -p your-repo/docs
 ```
@@ -23,7 +23,7 @@ Your repo should now look like this:
 ```
 your-repo/
 ├── AGENTS.md
-├── agent-kit/
+├── framework/
 │   ├── BUILDER.md
 │   ├── domains/
 │   │   └── _template.md
@@ -39,7 +39,7 @@ Open `AGENTS.md` and verify it contains:
 ```markdown
 # Agent Instructions
 
-Read and follow `agent-kit/BUILDER.md` for all tasks.
+Read and follow `framework/BUILDER.md` for all tasks.
 
 Project artifacts (intent, design, verification) go in `docs/`.
 ```
@@ -96,9 +96,9 @@ This is your chance to course-correct. If a decision is wrong, say so now. If a 
 
 ## Step 5: Watch the domain profile load (or get created)
 
-If a domain profile exists for your stack in `agent-kit/domains/`, the LLM loads it and reads every pitfall and adversary question before continuing.
+If a domain profile exists for your stack in `framework/domains/`, the LLM loads it and reads every pitfall and adversary question before continuing.
 
-If no profile exists, the LLM creates one from `agent-kit/domains/_template.md`. The first version will be minimal — terminology mapping, verification commands, a couple of pitfalls. That's fine. It will grow.
+If no profile exists, the LLM creates one from `framework/domains/_template.md`. The first version will be minimal — terminology mapping, verification commands, a couple of pitfalls. That's fine. It will grow.
 
 ## Step 6: Review the Design
 
@@ -159,7 +159,7 @@ If Gate 4 passed, the project builds and tests from a clean state. That's the pr
 
 ## Step 9: Check the domain profile
 
-Open `agent-kit/domains/[your-profile].md`. Compare it to how it looked before the project. You may see:
+Open `framework/domains/[your-profile].md`. Compare it to how it looked before the project. You may see:
 
 - New entries in **Common Pitfalls** — things the LLM discovered during implementation
 - New **Adversary Questions** — traps specific to this stack
@@ -184,8 +184,8 @@ The LLM reads the verification log's Progress section, finds the last completed 
 
 **Add constraints as you discover preferences.** Every time you say "always do X" or "never do Y", the framework captures it — in the Intent for this project, in the domain profile for all future projects on this stack.
 
-**Bring profiles to new repos.** When you start a new repository with the same stack, copy the domain profile along with `agent-kit/`. All accumulated knowledge travels with it.
+**Bring profiles to new repos.** When you start a new repository with the same stack, copy the domain profile along with `framework/`. All accumulated knowledge travels with it.
 
-For the full technical reference — file descriptions, gate definitions, domain profile contract, and artifact specs — see [`agent-kit/README.md`](agent-kit/README.md).
+For the full technical reference — file descriptions, gate definitions, domain profile contract, and artifact specs — see [`framework/README.md`](framework/README.md).
 
 For the concepts behind the framework — why it works, how the learning cycle operates, what makes domain profiles different — see the [project README](README.md).
