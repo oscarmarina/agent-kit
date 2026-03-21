@@ -29,29 +29,30 @@ graph TB
     subgraph PROCESS ["Proceso Standard / Full"]
         direction TB
 
-        subgraph PHASE_1 ["FASE 1 · Entender"]
+        subgraph PHASE_1 ["FASE 1 · Entender + Preparar"]
             direction TB
             INTENT["1️⃣ Capturar Intent<br/><i>docs/[proyecto]-intent.md</i><br/>Qué · Por qué · Comportamientos<br/>Decisiones · Restricciones"]
             LOAD["2️⃣ Cargar Domain Profile<br/><i>Resolver extends → catalog/</i><br/><i>Merge: base + local</i>"]
-            READ_PROFILE["3️⃣ Leer CADA pitfall<br/>y adversary question<br/>del perfil mergeado"]
-            INTENT --> LOAD --> READ_PROFILE
+            SKILLS["3️⃣ Cargar Skills relevantes<br/><i>.github/skills/ · .agents/skills/</i>"]
+            READ_PROFILE["4️⃣ Leer CADA pitfall<br/>y adversary question<br/>del perfil mergeado"]
+            INTENT --> LOAD --> SKILLS --> READ_PROFILE
         end
 
         subgraph PHASE_2 ["FASE 2 · Diseñar"]
             direction TB
-            DESIGN["4️⃣ Design — 4 lentes<br/><i>docs/[proyecto]-design.md</i>"]
+            DESIGN["5️⃣ Design — 4 lentes<br/><i>docs/[proyecto]-design.md</i>"]
             LENSES["User · Architecture<br/>Adversary · Domain"]
-            AQ["5️⃣ Adversary Questions Applied<br/><i>Responder cada pregunta<br/>del perfil contra ESTE diseño</i>"]
-            DP["6️⃣ Domain Pitfalls Applied<br/><i>Cómo se aborda cada<br/>pitfall conocido</i>"]
-            CHECKPOINT["7️⃣ Pre-Implementation Checkpoint<br/><i>4 preguntas antes de codificar</i>"]
+            AQ["6️⃣ Adversary Questions Applied<br/><i>Responder cada pregunta<br/>del perfil contra ESTE diseño</i>"]
+            DP["7️⃣ Domain Pitfalls Applied<br/><i>Cómo se aborda cada<br/>pitfall conocido</i>"]
+            CHECKPOINT["8️⃣ Pre-Implementation Checkpoint<br/><i>4 preguntas antes de codificar</i>"]
             DESIGN --- LENSES
             DESIGN --> AQ --> DP --> CHECKPOINT
         end
 
         subgraph PHASE_3 ["FASE 3 · Construir + Verificar"]
             direction TB
-            CODE["8️⃣ Builder implementa código"]
-            HANDOFF["9️⃣ Handoff al GateKeeper<br/><i>'Gate X listo para verificar'</i>"]
+            CODE["9️⃣ Builder implementa código"]
+            HANDOFF["🔟 Handoff al GateKeeper<br/><i>'Gate X listo para verificar'</i>"]
             CODE --> HANDOFF
 
             subgraph GATES ["GateKeeper ejecuta gates"]
@@ -69,8 +70,8 @@ graph TB
 
         subgraph PHASE_4 ["FASE 4 · Cerrar"]
             direction TB
-            REVIEW["🔟 Self-Review<br/><i>Adversary Lens sobre<br/>el código terminado</i>"]
-            LEARNING["1️⃣1️⃣ Domain Learning<br/><i>Actualizar perfil con<br/>descubrimientos</i>"]
+            REVIEW["1️⃣1️⃣ Self-Review<br/><i>Adversary Lens sobre<br/>el código terminado</i>"]
+            LEARNING["1️⃣2️⃣ Domain Learning<br/><i>Actualizar perfil con<br/>descubrimientos</i>"]
             REVIEW --> LEARNING
         end
 
@@ -107,6 +108,7 @@ graph TB
     style FAIL fill:#f44336,color:#fff,stroke:#c62828
     style FIX fill:#f44336,color:#fff,stroke:#c62828
     style UPDATE_DP fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style SKILLS fill:#CE93D8,color:#000,stroke:#8E24AA,stroke-width:1px
     style DONE fill:#4CAF50,color:#fff,stroke:#2E7D32
     style CHECKPOINT fill:#FF9800,color:#fff,stroke:#E65100
 ```
@@ -187,7 +189,15 @@ El LLM busca en `framework/domains/`:
 
 Si no existe ningún perfil → el LLM crea uno nuevo completo en `catalog/` y luego un link en `domains/`.
 
-**Paso 3: Leer cada pitfall y adversary question**
+**Paso 3: Cargar Skills relevantes**
+
+El LLM busca en `.github/skills/` y `.agents/skills/` archivos `SKILL.md`. Lee la `description` de cada uno y carga los que encajan con la tarea. Por ejemplo, una skill `frontend-design` se carga para tareas de UI pero se ignora para una API backend.
+
+Las skills son guidance de diseño y calidad — no reemplazan el proceso del framework ni los domain profiles. Si no hay skills instaladas, se salta este paso.
+
+> En proyectos **Full**, este paso es obligatorio. Si no hay skills, se documenta "ninguna encontrada".
+
+**Paso 4: Leer cada pitfall y adversary question**
 
 No basta con "cargar" el perfil. El LLM lee activamente cada pitfall y cada adversary question del perfil mergeado. Estos informan el diseño — cargar sin leer es inútil.
 
@@ -195,7 +205,7 @@ No basta con "cargar" el perfil. El LLM lee activamente cada pitfall y cada adve
 
 ### FASE 2 — Diseñar
 
-**Paso 4: Design Document — las 4 lentes en un solo pase**
+**Paso 5: Design Document — las 4 lentes en un solo pase**
 
 El LLM crea `docs/[proyecto]-design.md` aplicando las 4 lentes simultáneamente:
 
@@ -208,12 +218,13 @@ El LLM crea `docs/[proyecto]-design.md` aplicando las 4 lentes simultáneamente:
 
 El Design incluye:
 - **Domain Profile Selection Rationale** — Por qué se eligió este perfil (con scores)
+- **Skills Loaded** — Qué skills se cargaron (o "ninguna")
 - **Stack** — Tecnologías con versiones verificadas (`npm view`)
 - **Architecture** — Estructura, data flow, init chain
 - **Decisions** — Cada decisión arquitectónica con alternativas rechazadas
 - **Risks** — Identificados ANTES de implementar
 
-**Paso 5: Adversary Questions Applied** (sección obligatoria)
+**Paso 6: Adversary Questions Applied** (sección obligatoria)
 
 Cada adversary question del perfil se responde contra ESTE diseño específico:
 
@@ -223,7 +234,7 @@ Cada adversary question del perfil se responde contra ESTE diseño específico:
 
 > Checking pitfalls ≠ answering adversary questions. Son secciones separadas con propósitos distintos.
 
-**Paso 6: Domain Pitfalls Applied** (sección obligatoria)
+**Paso 7: Domain Pitfalls Applied** (sección obligatoria)
 
 Para cada pitfall del perfil: ¿aplica? ¿cómo se aborda?
 
@@ -232,7 +243,7 @@ Para cada pitfall del perfil: ¿aplica? ¿cómo se aborda?
 | Attribute binding for non-strings | Sí | Property binding en todos los casos |
 | CORS en widget assets | Sí | CSP configurado en `_meta.ui` |
 
-**Paso 7: Pre-Implementation Checkpoint**
+**Paso 8: Pre-Implementation Checkpoint**
 
 4 preguntas antes de escribir una sola línea de código:
 
@@ -247,11 +258,11 @@ Para cada pitfall del perfil: ¿aplica? ¿cómo se aborda?
 
 ### FASE 3 — Construir y verificar
 
-**Paso 8: El Builder implementa código**
+**Paso 9: El Builder implementa código**
 
 El Builder escribe código siguiendo el Design. El código va en su propio directorio (ej. `mcp-task-widget/`), nunca en la raíz del repo.
 
-**Paso 9: Handoff adversarial al GateKeeper**
+**Paso 10: Handoff adversarial al GateKeeper**
 
 El Builder **nunca verifica su propio trabajo**. Cuando una fase está lista:
 
@@ -261,7 +272,7 @@ El Builder **nunca verifica su propio trabajo**. Cuando una fase está lista:
 
 > Esta separación elimina las auto-aprobaciones alucinadas.
 
-**Paso 9.1: El GateKeeper ejecuta los gates**
+**Paso 10.1: El GateKeeper ejecuta los gates**
 
 El GateKeeper es un agente estrictamente mecánico:
 
@@ -281,7 +292,7 @@ Para cada gate, el GateKeeper:
 
 > "Assumed to pass" nunca es evidencia válida. Output real o no ocurrió.
 
-**Paso 9.2: Qué pasa cuando un gate falla**
+**Paso 10.2: Qué pasa cuando un gate falla**
 
 ```
 [GATE REJECTED]
@@ -301,7 +312,7 @@ Action Required: Builder must analyze the root cause and resubmit.
 
 > Cada fallo es una oportunidad de aprendizaje. Un fix sin actualización del perfil significa que el mismo error puede repetirse en el próximo proyecto.
 
-**Paso 9.3: Qué pasa cuando un gate pasa**
+**Paso 10.3: Qué pasa cuando un gate pasa**
 
 ```
 [GATE PASSED]
@@ -314,7 +325,7 @@ El GateKeeper actualiza la tabla de Progress y avanza al siguiente gate.
 
 ### FASE 4 — Cerrar
 
-**Paso 10: Self-Review**
+**Paso 11: Self-Review**
 
 El Builder cambia a lente Adversary sobre el código terminado:
 
@@ -327,7 +338,7 @@ Para proyectos **Full**, añade:
 - **Devil's Advocate** — 3 escenarios no cubiertos, eslabón más débil, vector de ataque
 - **Findings** — Mínimo 3 hallazgos genuinos
 
-**Paso 11: Domain Learning**
+**Paso 12: Domain Learning**
 
 El Builder verifica que el Domain Profile se actualizó durante la implementación. Si algo se pasó por alto, lo actualiza ahora:
 
@@ -361,6 +372,7 @@ Y la tabla de Progress del verification log muestra:
 | Step                   | Status |
 |------------------------|--------|
 | Intent                 | PASS   |
+| Skills loaded          | PASS   |
 | Design                 | PASS   |
 | Gate 0: Dependencies   | PASS   |
 | Gate 1: Scaffold       | PASS   |

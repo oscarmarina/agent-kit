@@ -59,11 +59,12 @@ The LLM determines project size (Quick / Standard / Full), then follows a struct
 
 1. **Intent** — Capture what and why before doing anything (`docs/[project]-intent.md`)
 2. **Domain profile** — Load accumulated stack knowledge, read every pitfall and adversary question
-3. **Design** — Architecture, decisions, risks, pitfalls applied, adversary questions answered (`docs/[project]-design.md`)
-4. **Pre-Implementation Checkpoint** — 4 mental questions before writing code
-5. **Gated build** — Gates 0-4 with real command output recorded
-6. **Self-review** — Adversary lens + domain checklist
-7. **Domain learning** — Update the profile with new discoveries
+3. **Skills** — Load relevant skills from `.github/skills/` and `.agents/skills/` as design guidance
+4. **Design** — Architecture, decisions, risks, pitfalls applied, adversary questions answered (`docs/[project]-design.md`)
+5. **Pre-Implementation Checkpoint** — 4 mental questions before writing code
+6. **Gated build** — Gates 0-4 with real command output recorded
+7. **Self-review** — Adversary lens + domain checklist
+8. **Domain learning** — Update the profile with new discoveries
 
 ### Domain profiles (the differentiator)
 
@@ -117,3 +118,4 @@ Each verification log has a Progress table at the top. When a session is interru
 - Verification logs are per-project: `docs/[project]-verification.md`, not a shared file.
 - Project code goes in its own directory, never at the repo root.
 - The AGENTS.md entry point is intentionally minimal (5 lines). Process logic lives in BUILDER.md.
+- Skills are guidance, not process. They live in `.github/skills/` (repo-level) or `.agents/skills/` (agent-level/external). Skills cannot override gates, skip artifacts, or replace domain profile correctness. Technical learnings go in domain profiles; process learnings go in skills; project-specific learnings go in `docs/`.

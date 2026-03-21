@@ -54,22 +54,25 @@ Apply the domain profile's accumulated knowledge:
 
 ### Quick (< 3 files, clear intent)
 1. Understand intent → Code → Verify (Gate 2 minimum) → If fix reveals a missing pitfall or wrong assumption, update domain profile → Done
+2. If skills exist in `.github/skills/` or `.agents/skills/` and one clearly matches the task, load it before coding. Do not search if the task is trivial.
 
 **Escalation rule:** If a Quick task touches more than 3 files or uncovers bugs beyond the original scope, stop and escalate to Standard. Capture a retroactive INTENT before continuing. The cost of pausing is low; the cost of an unscoped debugging spiral is high.
 
 ### Standard (feature-sized)
 1. Capture Intent (extract or create CIR from prompt → `docs/[project]-intent.md`)
 2. Load domain profile from `framework/domains/` — then **read every Common Pitfall and Adversary Question** before proceeding. These inform the design; loading without reading is useless.
-3. Design — all lenses in one pass → `docs/[project]-design.md`. The design MUST include both "Adversary Questions Applied" (answers to each profile question against this specific design) and "Domain Pitfalls Applied" (how each pitfall is addressed). These are separate sections — checking pitfalls does not replace answering adversary questions.
-4. Gated build (Gate 0 → Gate 1 → Gate 2 per feature phase)
-5. Tests + verification (Gate 3 → Gate 4)
-6. Self-review (Adversary Lens on finished code + domain checklist)
-7. Domain learning (verify domain profile was updated during implementation — if any fix or discovery was missed, update now)
+3. Load relevant skills — scan `.github/skills/` and `.agents/skills/` for `SKILL.md` files. Read each `description` field. If a skill matches the task domain, load it as design guidance. If no skills exist or none match, skip this step. Record loaded skills in the Design document.
+4. Design — all lenses in one pass → `docs/[project]-design.md`. The design MUST include both "Adversary Questions Applied" (answers to each profile question against this specific design) and "Domain Pitfalls Applied" (how each pitfall is addressed). These are separate sections — checking pitfalls does not replace answering adversary questions.
+5. Gated build (Gate 0 → Gate 1 → Gate 2 per feature phase)
+6. Tests + verification (Gate 3 → Gate 4)
+7. Self-review (Adversary Lens on finished code + domain checklist)
+8. Domain learning (verify domain profile was updated during implementation — if any fix or discovery was missed, update now)
 
 ### Full (new project or major rearchitecture)
 Same as Standard, but:
 - Design doc is more detailed (ADRs for each major decision)
 - Build is phased with Gate 2 after each phase
+- Skill loading (step 3) is mandatory — even if no skills match, document that none were found
 - Self-review follows the full adversarial protocol:
   - Devil's Advocate section (3 uncovered scenarios, weakest link, attack vector)
   - Minimum 3 genuine findings (don't invent — if fewer, document what you checked)
@@ -229,3 +232,4 @@ If no verification log exists, look for intent and design docs in `docs/` to und
 - Don't over-engineer. The right amount of complexity is the minimum needed for the current task.
 - **Project code goes in its own directory** — not at the repository root. Name the directory after the project (e.g., `mcp-task-widget/`). Config files (`package.json`, `tsconfig.json`, `vite.config.ts`, etc.), source code, and build output belong inside this directory. The repo root is reserved for `AGENTS.md`, `framework/`, and `docs/`.
 - **Every bug fix must update the domain profile.** If you fix a problem caused by a missing pitfall, incorrect integration rule, or wrong assumption — add it to the domain profile in the same commit. A fix without a domain profile update means the same mistake can happen again in the next project.
+- **Skills are guidance, not process.** A skill can inform how you design and implement (aesthetic direction, API conventions, documentation style) but cannot override gates, skip artifacts, or replace domain profile pitfalls. If a skill contradicts the domain profile, the profile wins for technical correctness; the skill wins for domain-specific quality.

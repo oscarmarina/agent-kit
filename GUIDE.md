@@ -112,11 +112,20 @@ If a matching base profile exists in `catalog/`, the LLM creates a **profile lin
 
 If no base profile exists, the LLM creates a **standalone full profile** directly in `framework/domains/` using `framework/templates/DOMAIN_PROFILE-template.md`. The first version will be minimal — terminology mapping, verification commands, a couple of pitfalls. It will grow as the project discovers new pitfalls. When you want to reuse it across projects, move it to `catalog/` and replace it with a link.
 
-## Step 6: Review the Design
+## Step 6: Skills get loaded (if they exist)
+
+If your repo has skills installed in `.github/skills/` or `.agents/skills/`, the LLM scans their descriptions and loads any that match the task. For example, a `frontend-design` skill would be loaded for a UI task but ignored for a backend API.
+
+Skills provide design guidance — aesthetic direction, API conventions, documentation style — but they don't replace the domain profile or the verification gates. You might not have any skills yet, and that's fine. The framework works without them.
+
+> **Tip:** You can install community skills from [skills.sh](https://skills.sh) (`npx skills add owner/skill-name`) or create your own in `.github/skills/your-skill/SKILL.md`.
+
+## Step 7: Review the Design
 
 The LLM creates `docs/[project]-design.md`. This is one document that replaces a separate PRD, tech spec, and implementation plan. You will see:
 
 - **Domain Profile Selection** — which profile was chosen and why (with scores)
+- **Skills Loaded** — which skills were loaded (or "none")
 - **Stack** — technologies with verified versions
 - **Architecture** — structure, data flow, initialization chain
 - **Decisions** — every architectural choice with rationale
@@ -126,7 +135,7 @@ The LLM creates `docs/[project]-design.md`. This is one document that replaces a
 
 The Adversary Questions and Domain Pitfalls sections are where the domain profile earns its value. They force the LLM to confront known failure modes *before* writing a single line of code.
 
-## Step 7: Watch the gated build
+## Step 8: Watch the gated build
 
 Now the LLM starts building. It proceeds through gates:
 
@@ -147,7 +156,7 @@ If a gate fails, the LLM:
 
 This last step is the learning cycle in action. A failure today becomes a prevention for tomorrow.
 
-## Step 8: Check the verification log
+## Step 9: Check the verification log
 
 When the build is complete, open `docs/[project]-verification.md`. At the top you will see the Progress table:
 
@@ -155,6 +164,7 @@ When the build is complete, open `docs/[project]-verification.md`. At the top yo
 | Step | Status |
 |------|--------|
 | Intent | PASS |
+| Skills loaded | PASS |
 | Design | PASS |
 | Gate 0: Dependencies | PASS |
 | Gate 1: Scaffold | PASS |
@@ -169,7 +179,7 @@ Below that: real output for every gate, a failure history (if anything failed al
 
 If Gate 4 passed, the project builds and tests from a clean state. That's the proof.
 
-## Step 9: Check what the LLM learned
+## Step 10: Check what the LLM learned
 
 After the project, check two places:
 
@@ -185,7 +195,7 @@ After the project, check two places:
 
 This is the flywheel. The next project on this stack inherits the updated base profile automatically through `extends`. Local pitfalls that prove useful across projects should be contributed back to the catalog profile.
 
-## Step 10: Resume interrupted work (when it happens)
+## Step 11: Resume interrupted work (when it happens)
 
 Sessions get interrupted — context limits, network issues, or just closing the chat. When you come back, start a new session and prompt:
 

@@ -31,12 +31,14 @@ graph TB
         direction TB
         INTENT["1  Capture Intent<br/><i>docs/[project]-intent.md</i>"]
         LOAD_PROFILE["2  Load domain profile"]
-        DESIGN["3  Design — all lenses<br/><i>docs/[project]-design.md</i>"]
-        WRITE_CODE["4  Implement code<br/><i>Builder strictly writes</i>"]
-        HANDOFF["5  Handoff to GateKeeper"]
+        LOAD_SKILLS["3  Load relevant skills<br/><i>.github/skills/ · .agents/skills/</i>"]
+        DESIGN["4  Design — all lenses<br/><i>docs/[project]-design.md</i>"]
+        WRITE_CODE["5  Implement code<br/><i>Builder strictly writes</i>"]
+        HANDOFF["6  Handoff to GateKeeper"]
         
         INTENT --> LOAD_PROFILE
-        LOAD_PROFILE --> DESIGN
+        LOAD_PROFILE --> LOAD_SKILLS
+        LOAD_SKILLS --> DESIGN
         DESIGN --> WRITE_CODE
         WRITE_CODE --> HANDOFF
     end
@@ -44,8 +46,8 @@ graph TB
     %% ── Verification Loop (GateKeeper) ──
     subgraph VERIFICATION ["<b>GateKeeper Authority</b>"]
         direction TB
-        GATES["6  Gated build<br/>Gate 0 → 1 → 2"]
-        TESTS["7  Tests + verification<br/>Gate 3 → Gate 4"]
+        GATES["7  Gated build<br/>Gate 0 → 1 → 2"]
+        TESTS["8  Tests + verification<br/>Gate 3 → Gate 4"]
         GATES --> TESTS
     end
     
@@ -67,8 +69,8 @@ graph TB
     FAIL -->|"No"| TESTS
 
     %% ── Learning cycle ──
-    TESTS --> REVIEW["8  Self-review<br/><i>Adversary Lens + domain checklist</i>"]
-    REVIEW --> LEARNING["9  Domain learning<br/><i>verify profile was updated</i>"]
+    TESTS --> REVIEW["9  Self-review<br/><i>Adversary Lens + domain checklist</i>"]
+    REVIEW --> LEARNING["10  Domain learning<br/><i>verify profile was updated</i>"]
     LEARNING --> DP
 
     %% ── Verification log ──
@@ -99,6 +101,7 @@ graph TB
     style FAIL fill:#f44336,color:#fff,stroke:#c62828
     style FIX fill:#f44336,color:#fff,stroke:#c62828
     style UPDATE_PROFILE fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style LOAD_SKILLS fill:#CE93D8,color:#000,stroke:#8E24AA,stroke-width:1px
     style RESUME fill:#9C27B0,color:#fff,stroke:#6A1B9A
     style QUICK fill:#78909C,color:#fff,stroke:#37474F
     style QUICK_DONE fill:#78909C,color:#fff,stroke:#37474F
@@ -110,6 +113,7 @@ graph TB
 - **Blue** = Verification Log — the proof mechanism. Real command output, not assumptions.
 - **Orange** = Checkpoints — points where the LLM must pause and think before acting.
 - **Red** = Failure path — failures are captured, root-caused, and fed back into the profile.
+- **Light purple** = Skills — optional guidance loaded before design (aesthetic, conventions, workflow).
 - **Purple** = Resume — interrupted sessions recover from the verification log's Progress section.
 - The dashed line from Domain Profile back to "Load domain profile" is the **learning cycle**: every project starts with the accumulated knowledge of all previous projects on that stack.
 

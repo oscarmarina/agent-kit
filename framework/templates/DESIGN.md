@@ -16,6 +16,14 @@ Document why this profile was selected so routing is auditable and repeatable.
 **Selected Profile:** [profile id]
 **Selection Basis:** [Unique highest score >= 2, or human-selected after tie]
 
+## Skills Loaded
+
+| Skill | Location | Why loaded |
+|-------|----------|------------|
+| [e.g., frontend-design] | [.agents/skills/frontend-design/] | [Task involves UI — skill description matches] |
+
+[If no skills exist or none match, write "None — no matching skills found."]
+
 ## Architecture
 
 ### Stack

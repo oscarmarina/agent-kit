@@ -67,6 +67,8 @@ Project code goes in its own directory — never at the repo root.
 | Standard | Feature-sized | Intent + Design + Code + Verification Log |
 | Full | New project / major rearchitecture | Standard + ADRs + Devil's Advocate self-review |
 
+All sizes load relevant skills when they exist (see Skills section below). For Full, skill loading is mandatory — document that none were found if that's the case.
+
 Quick escalates to Standard if it touches > 3 files or uncovers bugs beyond the original scope.
 
 When in doubt, the Builder goes one size up.
@@ -132,6 +134,7 @@ Architecture + decisions + risks. Template: `templates/DESIGN.md`
 | Section | Content |
 |---------|---------|
 | Domain Profile Selection Rationale | Candidates, scores, exclusions, selected profile |
+| Skills Loaded | Skills matched and loaded, or "none" if no skills apply |
 | Stack | Technologies with verified versions |
 | Structure | Code organization |
 | Data Flow | How data moves, especially across technology boundaries |
@@ -227,6 +230,36 @@ Updates happen immediately, as part of the same change that discovered the gap. 
 5. Continue from the next incomplete step — do not redo completed gates
 
 If no verification log exists, look for intent and design docs in `docs/`. If nothing exists, start fresh.
+
+## Skills
+
+Skills are optional guidance documents that inform design and implementation quality without replacing the framework process or domain profiles.
+
+### Where skills live
+
+| Location | Scope | Example |
+|----------|-------|---------|
+| `.github/skills/` | Repo-level — workflow and composition rules specific to this repository | `repo-frontend-workflow` |
+| `.agents/skills/` | Agent-level — external skills installed via tools like [skills.sh](https://skills.sh) | `frontend-design` |
+
+Each skill is a `SKILL.md` file with a `name` and `description` in its frontmatter.
+
+### When skills are loaded
+
+During Standard/Full step 3 (after domain profile, before design), the Builder scans both directories, reads each skill's `description`, and loads skills that match the task domain. For Quick tasks, a skill is loaded only if one clearly matches. Skills are recorded in the Design document.
+
+### Boundary rules
+
+- Skills inform quality (aesthetic direction, API conventions, documentation style)
+- Skills cannot override gates, skip artifacts, or replace domain profile correctness
+- If a skill contradicts the domain profile, the profile wins for technical correctness; the skill wins for domain-specific quality
+- Technical learnings (build failures, pitfalls, integration rules) go in the domain profile, not in skills
+- Process learnings (how this repo executes tasks) go in repo-level skills
+- Project-specific learnings go in `docs/`
+
+### Skills and domain profiles are independent
+
+Domain profiles do not declare which skills to use. Skills do not declare which profiles to select. The Builder evaluates each independently based on the task. This keeps both systems composable — a profile works with any combination of skills, and a skill works with any profile.
 
 ## Self-review protocol
 
