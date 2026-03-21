@@ -10,12 +10,16 @@ In this tutorial, we will set up Agent Kit in a new repository and use it to bui
 
 ## Step 1: Copy the framework into your repo
 
-Copy three things into your repository's root:
+Copy the framework into your repository's root:
 
 ```bash
 cp -R framework/ your-repo/framework/
 cp AGENTS.md your-repo/
 mkdir -p your-repo/docs
+
+# Optional: if a catalog profile exists for your stack, copy it too
+mkdir -p your-repo/catalog
+cp catalog/[your-profile].md your-repo/catalog/
 ```
 
 Your repo should now look like this:
@@ -25,12 +29,18 @@ your-repo/
 ├── AGENTS.md
 ├── framework/
 │   ├── BUILDER.md
+│   ├── GATEKEEPER.md
+│   ├── README.md
+│   ├── VERSION
 │   ├── domains/
 │   │   └── _template.md
 │   └── templates/
 │       ├── INTENT.md
 │       ├── DESIGN.md
-│       └── VERIFICATION_LOG-template.md
+│       ├── VERIFICATION_LOG-template.md
+│       └── DOMAIN_PROFILE-template.md
+├── catalog/                         ← only if you copied a profile
+│   └── [your-profile].md
 └── docs/
 ```
 
@@ -39,12 +49,14 @@ Open `AGENTS.md` and verify it contains:
 ```markdown
 # Agent Instructions
 
-Read and follow `framework/BUILDER.md` for all tasks.
+The framework operates on a strict Adversarial Verification Loop:
+- For design, planning, and code implementation tasks: Read and follow `framework/BUILDER.md`.
+- For execution, testing, and mechanical verification tasks: Read and follow `framework/GATEKEEPER.md`.
 
 Project artifacts (intent, design, verification) go in `docs/`.
 ```
 
-That's all `AGENTS.md` needs. The process logic lives in `BUILDER.md`.
+That's all `AGENTS.md` needs. The Builder handles design and implementation; the GateKeeper handles verification. The process logic lives in their respective files.
 
 ## Step 2: Write your prompt
 
@@ -96,9 +108,9 @@ This is your chance to course-correct. If a decision is wrong, say so now. If a 
 
 ## Step 5: Watch the domain profile load (or get created)
 
-If a domain profile exists for your stack in `framework/domains/`, the LLM loads it and reads every pitfall and adversary question before continuing.
+If a matching base profile exists in `catalog/`, the LLM creates a **profile link** in `framework/domains/` with `extends: [profile-id]` and reads every pitfall and adversary question from the base before continuing. The link template is `framework/domains/_template.md`.
 
-If no profile exists, the LLM creates one from `framework/domains/_template.md`. The first version will be minimal — terminology mapping, verification commands, a couple of pitfalls. That's fine. It will grow.
+If no base profile exists, the LLM creates a **standalone full profile** directly in `framework/domains/` using `framework/templates/DOMAIN_PROFILE-template.md`. The first version will be minimal — terminology mapping, verification commands, a couple of pitfalls. It will grow as the project discovers new pitfalls. When you want to reuse it across projects, move it to `catalog/` and replace it with a link.
 
 ## Step 6: Review the Design
 
@@ -157,16 +169,21 @@ Below that: real output for every gate, a failure history (if anything failed al
 
 If Gate 4 passed, the project builds and tests from a clean state. That's the proof.
 
-## Step 9: Check the domain profile
+## Step 9: Check what the LLM learned
 
-Open `framework/domains/[your-profile].md`. Compare it to how it looked before the project. You may see:
+After the project, check two places:
 
-- New entries in **Common Pitfalls** — things the LLM discovered during implementation
+**Your profile link** (`framework/domains/[your-profile].md`) — project-specific discoveries:
+- New **Local Pitfalls** — things unique to this project's context
+- New **Local Decision History** — constraints specific to this project
+
+**The base profile** (`catalog/[profile-id].md`) — stack-wide discoveries:
+- New entries in **Common Pitfalls** — things any project on this stack should know
 - New **Adversary Questions** — traps specific to this stack
 - New **Decision History** entries — constraints learned the hard way
 - Updated **Automated Checks** — new detection patterns
 
-This is the flywheel. The next project on this stack will load this profile and avoid the problems this project discovered.
+This is the flywheel. The next project on this stack inherits the updated base profile automatically through `extends`. Local pitfalls that prove useful across projects should be contributed back to the catalog profile.
 
 ## Step 10: Resume interrupted work (when it happens)
 
@@ -184,7 +201,7 @@ The LLM reads the verification log's Progress section, finds the last completed 
 
 **Add constraints as you discover preferences.** Every time you say "always do X" or "never do Y", the framework captures it — in the Intent for this project, in the domain profile for all future projects on this stack.
 
-**Bring profiles to new repos.** When you start a new repository with the same stack, copy the domain profile along with `framework/`. All accumulated knowledge travels with it.
+**Bring profiles to new repos.** When you start a new repository with the same stack, copy `framework/` and include the relevant base profiles from `catalog/`. Create a new profile link in `framework/domains/` that extends the base. All accumulated stack knowledge travels with it; project-specific knowledge stays behind.
 
 For the full technical reference — file descriptions, gate definitions, domain profile contract, and artifact specs — see [`framework/README.md`](framework/README.md).
 

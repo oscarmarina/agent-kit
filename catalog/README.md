@@ -11,13 +11,24 @@ Community-contributed domain profiles for Agent Kit. Each profile captures stack
 
 ## Using a profile
 
-Copy the profile you need into your project's `framework/domains/` directory:
+Create a profile link in your project's `framework/domains/` directory that extends the catalog profile:
 
-```bash
-cp catalog/web-kinu-preact-vite.md your-repo/framework/domains/
+```markdown
+<!-- framework/domains/my-project.md -->
+
+## Profile Link
+
+extends: web-kinu-preact-vite
+catalog_version: 1.0.0
+
+## Local Pitfalls
+<!-- Project-specific pitfalls go here -->
+
+## Local Overrides
+<!-- Only sections that differ from the base -->
 ```
 
-The Builder will automatically detect and load it based on keyword matching when you describe your stack in a prompt.
+The Builder loads the base from `catalog/` and merges your local additions on top. See `framework/domains/_template.md` for the full template and `framework/domains/README.md` for merge rules.
 
 ## Contributing a profile
 
@@ -25,7 +36,7 @@ Domain profiles grow from real project experience. If you've built projects with
 
 ### Requirements
 
-1. Use the template at `framework/domains/_template.md`
+1. Use the template at `framework/templates/DOMAIN_PROFILE-template.md`
 2. Follow the naming convention: `[domain]-[stack].md` (e.g., `web-react-nextjs.md`, `backend-python-fastapi.md`)
 3. Include at minimum:
    - **Selection Metadata** — Profile ID, Match Keywords, Use When, Do Not Use When

@@ -6,9 +6,9 @@ A process framework for LLM-assisted software development. Works with any LLM an
 
 LLMs make the same mistakes across projects. They skip verification, forget past lessons, lose context between sessions, and build confidently on wrong assumptions. Each new conversation starts from zero — even when the same stack was used yesterday.
 
-Agent Kit solves this with two mechanisms:
+Agent Kit solves this with an **Adversarial Verification Loop**:
 
-1. **A structured process** that forces the LLM to pause, verify, and prove its work before moving forward.
+1. **Dual-Agent Architecture**: A strictly separated `Builder` (writes code) and `GateKeeper` (executes tests). The LLM is forced to prove its work mechanically against an automated opponent, preventing self-approval hallucinations.
 2. **Domain profiles** — living documents that accumulate stack-specific knowledge across projects. Every bug fix, every gate failure, every discovery enriches the profile. The next project on the same stack starts knowing what the last one learned.
 
 ## How the process works
@@ -30,20 +30,26 @@ graph TB
     subgraph STANDARD ["<b>Standard / Full Process</b>"]
         direction TB
         INTENT["1  Capture Intent<br/><i>docs/[project]-intent.md</i>"]
-        LOAD_PROFILE["2  Load domain profile<br/><i>Read every pitfall &<br/>adversary question</i>"]
+        LOAD_PROFILE["2  Load domain profile"]
         DESIGN["3  Design — all lenses<br/><i>docs/[project]-design.md</i>"]
-        CHECKPOINT["Pre-Implementation<br/>Checkpoint<br/><i>4 questions before coding</i>"]
-        GATES["4  Gated build<br/>Gate 0 → 1 → 2"]
-        TESTS["5  Tests + verification<br/>Gate 3 → Gate 4"]
-        REVIEW["6  Self-review<br/><i>Adversary Lens +<br/>domain checklist</i>"]
-
+        WRITE_CODE["4  Implement code<br/><i>Builder strictly writes</i>"]
+        HANDOFF["5  Handoff to GateKeeper"]
+        
         INTENT --> LOAD_PROFILE
         LOAD_PROFILE --> DESIGN
-        DESIGN --> CHECKPOINT
-        CHECKPOINT --> GATES
-        GATES --> TESTS
-        TESTS --> REVIEW
+        DESIGN --> WRITE_CODE
+        WRITE_CODE --> HANDOFF
     end
+
+    %% ── Verification Loop (GateKeeper) ──
+    subgraph VERIFICATION ["<b>GateKeeper Authority</b>"]
+        direction TB
+        GATES["6  Gated build<br/>Gate 0 → 1 → 2"]
+        TESTS["7  Tests + verification<br/>Gate 3 → Gate 4"]
+        GATES --> TESTS
+    end
+    
+    HANDOFF --> VERIFICATION
 
     %% ── Domain profile (central) ──
     DP[("<b>Domain Profile</b><br/><i>pitfalls · adversary questions<br/>integration rules · checks<br/>decision history</i>")]
@@ -54,14 +60,15 @@ graph TB
 
     %% ── Gate failure loop ──
     GATES --> FAIL{"Gate<br/>fails?"}
-    FAIL -->|"Yes"| FIX["Root cause → Fix<br/>→ Re-run gate"]
-    FIX --> UPDATE_PROFILE["Update domain profile<br/><i>new pitfall / rule / check</i>"]
+    FAIL -->|"Yes"| FIX["Raw log to Builder<br/>→ Fix → Re-run"]
+    FIX --> UPDATE_PROFILE["GateKeeper Updates Profile<br/><i>new pitfall / rule</i>"]
     UPDATE_PROFILE --> DP
     FIX --> GATES
     FAIL -->|"No"| TESTS
 
     %% ── Learning cycle ──
-    REVIEW --> LEARNING["7  Domain learning<br/><i>verify profile was updated</i>"]
+    TESTS --> REVIEW["8  Self-review<br/><i>Adversary Lens + domain checklist</i>"]
+    REVIEW --> LEARNING["9  Domain learning<br/><i>verify profile was updated</i>"]
     LEARNING --> DP
 
     %% ── Verification log ──
@@ -88,7 +95,7 @@ graph TB
     %% ── Styles ──
     style DP fill:#4CAF50,color:#fff,stroke:#2E7D32,stroke-width:2px
     style VLOG fill:#2196F3,color:#fff,stroke:#1565C0,stroke-width:2px
-    style CHECKPOINT fill:#FF9800,color:#fff,stroke:#E65100,stroke-width:2px
+    style REVIEW fill:#FF9800,color:#fff,stroke:#E65100,stroke-width:2px
     style FAIL fill:#f44336,color:#fff,stroke:#c62828
     style FIX fill:#f44336,color:#fff,stroke:#c62828
     style UPDATE_PROFILE fill:#4CAF50,color:#fff,stroke:#2E7D32
@@ -116,7 +123,7 @@ The LLM doesn't follow a linear sequence. It applies four thinking modes wheneve
 
 **Adversary Lens** — What could go wrong? Applied *during* design, not only after. "What input breaks this?", "What happens when X is unavailable?", "What would a careless developer get wrong?" If the domain profile has adversary questions, they must be answered against the specific design before any code is written.
 
-**Domain Lens** — What does the domain profile say? Checks every pitfall, follows integration rules, runs automated checks. The accumulated knowledge of previous projects on this stack.
+**Domain Lens** — What does the domain profile say? Incorporates integration rules and semantic terminology. The accumulated knowledge of previous projects on this stack.
 
 ## Domain profiles: the learning mechanism
 
@@ -136,11 +143,11 @@ From real usage: a domain profile started with 3 pitfalls. After two projects, i
 
 Documentation describes how things work. Domain profiles describe how things *fail* — and what to do about it. They are written by the LLM during implementation, not by a human before it. They grow from experience, not from planning.
 
-They also travel. Copy a profile to a new repository and every project in that repo inherits the knowledge. Different LLMs can use the same profile. The learning persists regardless of which model or session created it.
+They also travel. Copy `framework/` along with the relevant base profiles from `catalog/` to a new repository and every project in that repo inherits the knowledge. Different LLMs can use the same profile. The learning persists regardless of which model or session created it.
 
 ## Verification: proof over claims
 
-LLMs are confident. They will tell you "everything works" when it doesn't. The framework addresses this with gates — mandatory checkpoints where the LLM runs a real command, pastes the real output, and records it in the verification log.
+LLMs are confident. They will tell you "everything works" when it doesn't. The framework addresses this with an adversarial loop — mandatory checkpoints where the GateKeeper runs a real command against the Builder's code, pastes the real output, and records it in the verification log.
 
 "Assumed to pass" is never valid evidence. If the output isn't in the log, it didn't happen.
 
@@ -173,7 +180,13 @@ See [**framework/README.md**](framework/README.md) for the technical reference �
 - [`apps-sdk-mcp-lit-vite.md`](catalog/apps-sdk-mcp-lit-vite.md) — MCP Apps + Lit + Vite. 11 pitfalls, 7 adversary questions. Shows what a mature profile looks like after the flywheel has turned.
 - [`web-kinu-preact-vite.md`](catalog/web-kinu-preact-vite.md) — Kinu + Preact + Vite. 4 pitfalls, 4 adversary questions.
 
-Copy any relevant profile from `catalog/` into your project's `framework/domains/` to start with accumulated knowledge.
+If a relevant catalog profile exists for your stack, create a profile link in `framework/domains/` that extends it (see `framework/domains/_template.md`). If not, the Builder will create a standalone profile during the first project using `framework/templates/DOMAIN_PROFILE-template.md`.
+
+**Project artifacts:** The [`examples/`](examples/) directory contains real project artifacts showing the framework in action:
+
+- [`mcp-task-widget/`](examples/mcp-task-widget/) — Complete example with intent, design, and verification artifacts.
+- [`logistics-control-tower/`](examples/logistics-control-tower/) — Full-sized project prompt.
+- [`test-habit-tracker/`](examples/test-habit-tracker/) — Spanish-language prompt example.
 
 
 ## License

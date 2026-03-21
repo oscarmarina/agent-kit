@@ -19,17 +19,19 @@ When someone copies `framework/` into their own repository and points `AGENTS.md
 │
 ├── framework/                   # THE FRAMEWORK (this is what gets copied to target repos)
 │   ├── BUILDER.md               # Process contract — the LLM reads and follows this
+│   ├── GATEKEEPER.md            # Verification agent — executes commands, enforces gates
 │   ├── README.md                # Technical reference — gates, artifacts, contracts
 │   ├── VERSION                  # Framework version for tracking updates
 │   ├── domains/
-│   │   ├── _template.md         # Template for creating new domain profiles
+│   │   ├── _template.md         # Template for creating profile links that extend catalog profiles
 │   │   └── README.md            # How domain profiles work
 │   └── templates/
 │       ├── INTENT.md            # Template: what and why
 │       ├── DESIGN.md            # Template: how (architecture, decisions, risks)
-│       └── VERIFICATION_LOG-template.md  # Template: proof (gate output, progress)
+│       ├── VERIFICATION_LOG-template.md  # Template: proof (gate output, progress)
+│       └── DOMAIN_PROFILE-template.md    # Template: standalone full domain profile
 │
-├── catalog/                     # Community-contributed domain profiles
+├── catalog/                     # Community-contributed base profiles
 │   ├── README.md                # How to use and contribute profiles
 │   ├── apps-sdk-mcp-lit-vite.md # Real profile (11 pitfalls, 7 adversary Qs)
 │   └── web-kinu-preact-vite.md  # Real profile (4 pitfalls, 4 adversary Qs)
@@ -65,11 +67,11 @@ The LLM determines project size (Quick / Standard / Full), then follows a struct
 
 ### Domain profiles (the differentiator)
 
-Domain profiles are living documents in `framework/domains/`. They accumulate stack-specific knowledge — pitfalls, adversary questions, automated checks, decision history. Every gate failure becomes a new pitfall. Every project makes the next one better.
+Domain profiles use an **inheritance model**. Base profiles in `catalog/` contain stack-wide knowledge (pitfalls, adversary questions, automated checks, decision history). Profile links in `framework/domains/` extend a base profile with project-specific additions. Every gate failure becomes a new pitfall. Every project makes the next one better.
 
-Community-contributed profiles live in `catalog/`. Copy relevant ones into your project's `framework/domains/`.
+Community-contributed base profiles live in `catalog/`. Create a profile link in `framework/domains/` that extends the relevant catalog profile — see `framework/domains/_template.md` for the format.
 
-A profile contains: Selection Metadata, Terminology Mapping, Verification Commands, Common Pitfalls, Adversary Questions, Integration Rules, Automated Checks, Decision History, Review Checklist.
+A base profile contains: Selection Metadata, Terminology Mapping, Verification Commands, Common Pitfalls, Adversary Questions, Integration Rules, Automated Checks, Decision History, Review Checklist. A profile link contains: `extends` reference, Local Pitfalls, Local Overrides, Local Decision History.
 
 ### Verification gates
 
@@ -97,11 +99,12 @@ Each verification log has a Progress table at the top. When a session is interru
 | `GUIDE.md` | Tutorial | Learning — step-by-step first project |
 | `framework/README.md` | Reference | Information — specs, contracts, definitions |
 | `BUILDER.md` | Reference | Information — the process contract (for LLMs) |
+| `GATEKEEPER.md` | Reference | Information — the verification contract (for LLMs) |
 
 ## When modifying the framework
 
 - `BUILDER.md` is the source of truth for the process. Changes here affect how every LLM behaves.
-- Domain profile `_template.md` defines what new profiles look like. Changes propagate to all future profiles.
+- Profile link template (`framework/domains/_template.md`) defines what new profile links look like. Full profile template (`framework/templates/DOMAIN_PROFILE-template.md`) defines standalone profiles and catalog contributions. Changes propagate to all future profiles.
 - Template changes (`templates/*.md`) affect artifact structure for all future projects.
 - `README.md`, `GUIDE.md`, and `framework/README.md` must stay aligned with `BUILDER.md`. If the process changes, the docs must reflect it.
 - Examples in `examples/` are historical artifacts — do not modify them to match framework changes.
@@ -110,7 +113,7 @@ Each verification log has a Progress table at the top. When a session is interru
 ## Conventions
 
 - All framework documentation is in English.
-- Domain profiles use a specific structure (see `_template.md`). Do not deviate.
+- Standalone/base profiles use the structure in `framework/templates/DOMAIN_PROFILE-template.md`. Profile links use `framework/domains/_template.md`. Do not deviate.
 - Verification logs are per-project: `docs/[project]-verification.md`, not a shared file.
 - Project code goes in its own directory, never at the repo root.
 - The AGENTS.md entry point is intentionally minimal (5 lines). Process logic lives in BUILDER.md.

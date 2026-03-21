@@ -5,11 +5,14 @@
 | File | Purpose |
 |------|---------|
 | `BUILDER.md` | Process contract — lenses, gates, pre-implementation checkpoint, rules |
-| `domains/_template.md` | Template for creating new domain profiles |
-| `domains/*.md` | Domain profiles — accumulated knowledge per technology stack |
+| `GATEKEEPER.md` | Verification agent — executes commands, enforces gates, updates pitfalls |
+| `domains/_template.md` | Template for creating profile links that extend catalog profiles |
+| `domains/README.md` | How domain profiles work — types, matching, merge rules |
+| `domains/*.md` | Domain profiles — standalone or links extending catalog base profiles |
 | `templates/INTENT.md` | Template for Change Intent Records |
 | `templates/DESIGN.md` | Template for Design documents |
 | `templates/VERIFICATION_LOG-template.md` | Template for gate execution logs with progress tracking |
+| `templates/DOMAIN_PROFILE-template.md` | Template for creating standalone full domain profiles |
 
 ## Setup
 
@@ -18,12 +21,14 @@
    ```markdown
    # Agent Instructions
 
-   Read and follow `framework/BUILDER.md` for all tasks.
+   The framework operates on a strict Adversarial Verification Loop:
+   - For design, planning, and code implementation tasks: Read and follow `framework/BUILDER.md`.
+   - For execution, testing, and mechanical verification tasks: Read and follow `framework/GATEKEEPER.md`.
 
    Project artifacts (intent, design, verification) go in `docs/`.
    ```
 3. Create `docs/` for project-specific artifacts.
-4. Copy any relevant profile from the [catalog](../catalog/) into `framework/domains/`, or let the Builder create one during the first project.
+4. Create a profile link in `framework/domains/` that extends a relevant profile from the [catalog](../catalog/), or let the Builder create one during the first project. See `domains/_template.md` for the link format.
 
 Resulting structure:
 
@@ -32,6 +37,7 @@ repo/
 ├── AGENTS.md               ← entry point (5 lines)
 ├── framework/              ← framework (reusable)
 │   ├── BUILDER.md
+│   ├── GATEKEEPER.md
 │   ├── VERSION
 │   ├── domains/
 │   └── templates/
@@ -156,13 +162,19 @@ One log per project. Completed logs remain as historical evidence.
 
 ## Domain profile selection contract
 
+Profiles in `framework/domains/` can be standalone or links that extend base profiles from `catalog/`:
+
 1. Build candidates from `framework/domains/*.md`, excluding `_template.md` and `README.md`
-2. Read each candidate's metadata: `Profile ID`, `Match Keywords`, `Use When`, `Do Not Use When`
-3. Exclude profiles where `Do Not Use When` matches explicit user constraints
-4. Score remaining profiles by keyword overlap with prompt/stack (`+1` per keyword hit)
-5. Select only if highest score is unique and `>= 2`
-6. If tied or below threshold: ask the human. If no clarification, create a new profile from `_template.md`
-7. Record selected profile and reason in the Design document
+2. For each candidate, check for an `extends` field:
+   - If `extends` exists: load the base profile's metadata from `catalog/`
+   - If no `extends`: read the metadata directly from the profile
+3. Read selection metadata: `Profile ID`, `Match Keywords`, `Use When`, `Do Not Use When`
+4. Exclude profiles where `Do Not Use When` matches explicit user constraints
+5. Score remaining profiles by keyword overlap with prompt/stack (`+1` per keyword hit)
+6. Select only if highest score is unique and `>= 2`
+7. If tied or below threshold: ask the human. If no clarification, create a new profile (see Creating)
+8. If selected profile has `extends`: merge base + local pitfalls (appended) + local overrides (replaced) + local decisions (separate). If standalone: use directly
+9. Record selected profile and reason in the Design document
 
 ## Domain profile sections
 
@@ -181,9 +193,9 @@ One log per project. Completed logs remain as historical evidence.
 
 ### Creating a new profile
 
-When no profile matches, the Builder creates one from `domains/_template.md` during the Design phase.
+When a matching base profile exists in `catalog/`, the Builder creates a profile link in `domains/` using `domains/_template.md` with the `extends` field pointing to the catalog profile.
 
-Minimum viable profile: Terminology Mapping + Verification Commands + 2 Common Pitfalls.
+When no base profile exists, the Builder creates a standalone full profile in `domains/` using `templates/DOMAIN_PROFILE-template.md`. Minimum viable profile: Terminology Mapping + Verification Commands + 2 Common Pitfalls. When the profile proves reusable across projects, move it to `catalog/` and replace it with a link.
 
 ### Updating a profile
 
@@ -191,13 +203,20 @@ Minimum viable profile: Terminology Mapping + Verification Commands + 2 Common P
 
 Updates happen immediately, as part of the same change that discovered the gap. A fix without a profile update means the same mistake can happen again.
 
-What to update:
+**Where updates go** depends on their scope:
+
+**Stack-wide discoveries → base profile in `catalog/`:**
 - New pitfalls → Common Pitfalls (What/Correct/Detection)
 - Adjusted commands → Verification Commands
 - Missing or incorrect rules → Integration Rules
 - Stack-wide decisions → Decision History (date, decision, context, constraint)
 - New detection patterns → Automated Checks
 - Missing review items → Review Checklist
+
+**Project-specific discoveries → profile link in `framework/domains/`:**
+- Pitfalls unique to this project's context → Local Pitfalls
+- Gate overrides for this project → Local Overrides
+- Decisions that only apply here → Local Decision History
 
 ## Resuming interrupted work
 
