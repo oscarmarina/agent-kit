@@ -181,19 +181,16 @@ If Gate 4 passed, the project builds and tests from a clean state. That's the pr
 
 ## Step 10: Check what the LLM learned
 
-After the project, check two places:
+After the project, check what the LLM added to the domain profile.
 
-**Your profile link** (`framework/domains/[your-profile].md`) — project-specific discoveries:
-- New **Local Pitfalls** — things unique to this project's context
-- New **Local Decision History** — constraints specific to this project
+**If you created a standalone profile** (`framework/domains/[your-profile].md`) — all discoveries are in that single file: new pitfalls, adversary questions, decision history, and automated checks.
 
-**The base profile** (`catalog/[profile-id].md`) — stack-wide discoveries:
-- New entries in **Common Pitfalls** — things any project on this stack should know
-- New **Adversary Questions** — traps specific to this stack
-- New **Decision History** entries — constraints learned the hard way
-- Updated **Automated Checks** — new detection patterns
+**If you created a profile link** (`framework/domains/[your-profile].md` with `extends`) — check two places:
 
-This is the flywheel. The next project on this stack inherits the updated base profile automatically through `extends`. Local pitfalls that prove useful across projects should be contributed back to the catalog profile.
+- **Your profile link** — project-specific discoveries: new Local Pitfalls, Local Decision History
+- **The base profile** (`catalog/[profile-id].md`) — stack-wide discoveries: new Common Pitfalls, Adversary Questions, Decision History, Automated Checks
+
+This is the flywheel. The next project on this stack inherits all accumulated knowledge. For profile links, local pitfalls that prove useful across projects should be contributed back to the catalog profile.
 
 ## Step 11: Resume interrupted work (when it happens)
 

@@ -53,8 +53,7 @@ Apply the domain profile's accumulated knowledge:
 ## Process (Scaled by Size)
 
 ### Quick (< 3 files, clear intent)
-1. Understand intent → Code → Verify (Gate 2 minimum) → If fix reveals a missing pitfall or wrong assumption, update domain profile → Done
-2. If skills exist in `.github/skills/` or `.agents/skills/` and one clearly matches the task, load it before coding. Do not search if the task is trivial.
+1. Understand intent → Load matching skill if one clearly exists (do not search if trivial) → Code → Verify (Gate 2 minimum) → If fix reveals a missing pitfall or wrong assumption, update domain profile → Done
 
 **Escalation rule:** If a Quick task touches more than 3 files or uncovers bugs beyond the original scope, stop and escalate to Standard. Capture a retroactive INTENT before continuing. The cost of pausing is low; the cost of an unscoped debugging spiral is high.
 

@@ -55,10 +55,9 @@ The LLM determines project size (Quick / Standard / Full), then follows a struct
 2. **Domain profile** — Load accumulated stack knowledge, read every pitfall and adversary question
 3. **Skills** — Load relevant skills from `.github/skills/` and `.agents/skills/` as design guidance
 4. **Design** — Architecture, decisions, risks, pitfalls applied, adversary questions answered (`docs/[project]-design.md`)
-5. **Pre-Implementation Checkpoint** — 4 mental questions before writing code
-6. **Gated build** — Gates 0-4 with real command output recorded
-7. **Self-review** — Adversary lens + domain checklist
-8. **Domain learning** — Update the profile with new discoveries
+5. **Gated build** — Gates 0-4 with real command output recorded (Pre-Implementation Checkpoint before first line of code)
+6. **Self-review** — Adversary lens + domain checklist
+7. **Domain learning** — Update the profile with new discoveries
 
 ### Domain profiles (the differentiator)
 
