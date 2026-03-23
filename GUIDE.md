@@ -10,12 +10,16 @@ In this tutorial, we will set up Agent Kit in a new repository and use it to bui
 
 ## Step 1: Copy the framework into your repo
 
-Copy three things into your repository's root:
+Copy the framework into your repository's root:
 
 ```bash
-cp -R agent-kit/ your-repo/agent-kit/
+cp -R framework/ your-repo/framework/
 cp AGENTS.md your-repo/
 mkdir -p your-repo/docs
+
+# Optional: if a catalog profile exists for your stack, copy it too
+mkdir -p your-repo/catalog
+cp catalog/[your-profile].md your-repo/catalog/
 ```
 
 Your repo should now look like this:
@@ -23,14 +27,20 @@ Your repo should now look like this:
 ```
 your-repo/
 ├── AGENTS.md
-├── agent-kit/
+├── framework/
 │   ├── BUILDER.md
+│   ├── GATEKEEPER.md
+│   ├── README.md
+│   ├── VERSION
 │   ├── domains/
 │   │   └── _template.md
 │   └── templates/
 │       ├── INTENT.md
 │       ├── DESIGN.md
-│       └── VERIFICATION_LOG-template.md
+│       ├── VERIFICATION_LOG-template.md
+│       └── DOMAIN_PROFILE-template.md
+├── catalog/                         ← only if you copied a profile
+│   └── [your-profile].md
 └── docs/
 ```
 
@@ -39,12 +49,14 @@ Open `AGENTS.md` and verify it contains:
 ```markdown
 # Agent Instructions
 
-Read and follow `agent-kit/BUILDER.md` for all tasks.
+The framework operates on a strict Adversarial Verification Loop:
+- For design, planning, and code implementation tasks: Read and follow `framework/BUILDER.md`.
+- For execution, testing, and mechanical verification tasks: Read and follow `framework/GATEKEEPER.md`.
 
 Project artifacts (intent, design, verification) go in `docs/`.
 ```
 
-That's all `AGENTS.md` needs. The process logic lives in `BUILDER.md`.
+That's all `AGENTS.md` needs. The Builder handles design and implementation; the GateKeeper handles verification. The process logic lives in their respective files.
 
 ## Step 2: Write your prompt
 
@@ -96,15 +108,24 @@ This is your chance to course-correct. If a decision is wrong, say so now. If a 
 
 ## Step 5: Watch the domain profile load (or get created)
 
-If a domain profile exists for your stack in `agent-kit/domains/`, the LLM loads it and reads every pitfall and adversary question before continuing.
+If a matching base profile exists in `catalog/`, the LLM creates a **profile link** in `framework/domains/` with `extends: [profile-id]` and reads every pitfall and adversary question from the base before continuing. The link template is `framework/domains/_template.md`.
 
-If no profile exists, the LLM creates one from `agent-kit/domains/_template.md`. The first version will be minimal — terminology mapping, verification commands, a couple of pitfalls. That's fine. It will grow.
+If no base profile exists, the LLM creates a **standalone full profile** directly in `framework/domains/` using `framework/templates/DOMAIN_PROFILE-template.md`. The first version will be minimal — terminology mapping, verification commands, a couple of pitfalls. It will grow as the project discovers new pitfalls. When you want to reuse it across projects, move it to `catalog/` and replace it with a link.
 
-## Step 6: Review the Design
+## Step 6: Skills get loaded (if they exist)
+
+If your repo has skills installed in `.github/skills/` or `.agents/skills/`, the LLM scans their descriptions and loads any that match the task. For example, a `frontend-design` skill would be loaded for a UI task but ignored for a backend API.
+
+Skills provide design guidance — aesthetic direction, API conventions, documentation style — but they don't replace the domain profile or the verification gates. You might not have any skills yet, and that's fine. The framework works without them.
+
+> **Tip:** You can install community skills from [skills.sh](https://skills.sh) (`npx skills add owner/skill-name`) or create your own in `.github/skills/your-skill/SKILL.md`.
+
+## Step 7: Review the Design
 
 The LLM creates `docs/[project]-design.md`. This is one document that replaces a separate PRD, tech spec, and implementation plan. You will see:
 
 - **Domain Profile Selection** — which profile was chosen and why (with scores)
+- **Skills Loaded** — which skills were loaded (or "none")
 - **Stack** — technologies with verified versions
 - **Architecture** — structure, data flow, initialization chain
 - **Decisions** — every architectural choice with rationale
@@ -114,7 +135,7 @@ The LLM creates `docs/[project]-design.md`. This is one document that replaces a
 
 The Adversary Questions and Domain Pitfalls sections are where the domain profile earns its value. They force the LLM to confront known failure modes *before* writing a single line of code.
 
-## Step 7: Watch the gated build
+## Step 8: Watch the gated build
 
 Now the LLM starts building. It proceeds through gates:
 
@@ -135,7 +156,7 @@ If a gate fails, the LLM:
 
 This last step is the learning cycle in action. A failure today becomes a prevention for tomorrow.
 
-## Step 8: Check the verification log
+## Step 9: Check the verification log
 
 When the build is complete, open `docs/[project]-verification.md`. At the top you will see the Progress table:
 
@@ -143,6 +164,7 @@ When the build is complete, open `docs/[project]-verification.md`. At the top yo
 | Step | Status |
 |------|--------|
 | Intent | PASS |
+| Skills loaded | PASS |
 | Design | PASS |
 | Gate 0: Dependencies | PASS |
 | Gate 1: Scaffold | PASS |
@@ -157,18 +179,23 @@ Below that: real output for every gate, a failure history (if anything failed al
 
 If Gate 4 passed, the project builds and tests from a clean state. That's the proof.
 
-## Step 9: Check the domain profile
+## Step 10: Check what the LLM learned
 
-Open `agent-kit/domains/[your-profile].md`. Compare it to how it looked before the project. You may see:
+After the project, check two places:
 
-- New entries in **Common Pitfalls** — things the LLM discovered during implementation
+**Your profile link** (`framework/domains/[your-profile].md`) — project-specific discoveries:
+- New **Local Pitfalls** — things unique to this project's context
+- New **Local Decision History** — constraints specific to this project
+
+**The base profile** (`catalog/[profile-id].md`) — stack-wide discoveries:
+- New entries in **Common Pitfalls** — things any project on this stack should know
 - New **Adversary Questions** — traps specific to this stack
 - New **Decision History** entries — constraints learned the hard way
 - Updated **Automated Checks** — new detection patterns
 
-This is the flywheel. The next project on this stack will load this profile and avoid the problems this project discovered.
+This is the flywheel. The next project on this stack inherits the updated base profile automatically through `extends`. Local pitfalls that prove useful across projects should be contributed back to the catalog profile.
 
-## Step 10: Resume interrupted work (when it happens)
+## Step 11: Resume interrupted work (when it happens)
 
 Sessions get interrupted — context limits, network issues, or just closing the chat. When you come back, start a new session and prompt:
 
@@ -184,8 +211,8 @@ The LLM reads the verification log's Progress section, finds the last completed 
 
 **Add constraints as you discover preferences.** Every time you say "always do X" or "never do Y", the framework captures it — in the Intent for this project, in the domain profile for all future projects on this stack.
 
-**Bring profiles to new repos.** When you start a new repository with the same stack, copy the domain profile along with `agent-kit/`. All accumulated knowledge travels with it.
+**Bring profiles to new repos.** When you start a new repository with the same stack, copy `framework/` and include the relevant base profiles from `catalog/`. Create a new profile link in `framework/domains/` that extends the base. All accumulated stack knowledge travels with it; project-specific knowledge stays behind.
 
-For the full technical reference — file descriptions, gate definitions, domain profile contract, and artifact specs — see [`agent-kit/README.md`](agent-kit/README.md).
+For the full technical reference — file descriptions, gate definitions, domain profile contract, and artifact specs — see [`framework/README.md`](framework/README.md).
 
 For the concepts behind the framework — why it works, how the learning cycle operates, what makes domain profiles different — see the [project README](README.md).

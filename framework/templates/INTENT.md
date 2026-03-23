@@ -2,7 +2,7 @@
 
 **Date:** [Date]
 **Size:** [Quick / Standard / Full]
-**Domain Profile:** [Reference to agent-kit/domains/ profile, or "New — will be created"]
+**Domain Profile:** [Reference to framework/domains/ profile, or "New — will be created"]
 **Supersedes:** [Reference to previous Intent if this reworks an existing feature, or "—"]
 
 ## Goal
@@ -15,15 +15,6 @@ Observable behaviors that define this change. Use given/when/then format for cla
 
 - **Given** [precondition], **when** [action], **then** [observable outcome]
 - **Given** [precondition], **when** [action], **then** [observable outcome]
-
-<!-- Examples:
-- Given a user is on the habit list, when they tap "Mark Done" on a habit card, then the card disables its controls and shows a "done" visual state
-- Given a habit has been completed 3+ consecutive days, when the habit list renders, then a streak badge appears on the card
-- Given the app loads for the first time, when no habits exist in localStorage, then an empty state with a "Create your first habit" prompt appears
--->
-
-<!-- Only include behaviors that DEFINE the change — not exhaustive specs.
-     If a behavior is obvious from the Goal, skip it. -->
 
 ## Decisions
 

@@ -14,6 +14,7 @@ This log captures the actual output of every verification gate. It is the source
 | Step | Status |
 |------|--------|
 | Intent | — |
+| Skills loaded | — |
 | Design | — |
 | Gate 0: Dependencies | — |
 | Gate 1: Scaffold | — |

@@ -5,33 +5,40 @@
 | File | Purpose |
 |------|---------|
 | `BUILDER.md` | Process contract — lenses, gates, pre-implementation checkpoint, rules |
-| `domains/_template.md` | Template for creating new domain profiles |
-| `domains/*.md` | Domain profiles — accumulated knowledge per technology stack |
+| `GATEKEEPER.md` | Verification agent — executes commands, enforces gates, updates pitfalls |
+| `domains/_template.md` | Template for creating profile links that extend catalog profiles |
+| `domains/README.md` | How domain profiles work — types, matching, merge rules |
+| `domains/*.md` | Domain profiles — standalone or links extending catalog base profiles |
 | `templates/INTENT.md` | Template for Change Intent Records |
 | `templates/DESIGN.md` | Template for Design documents |
 | `templates/VERIFICATION_LOG-template.md` | Template for gate execution logs with progress tracking |
+| `templates/DOMAIN_PROFILE-template.md` | Template for creating standalone full domain profiles |
 
 ## Setup
 
-1. Copy `agent-kit/` into the target repo.
+1. Copy `framework/` into the target repo.
 2. Create `AGENTS.md` at the repo root:
    ```markdown
    # Agent Instructions
 
-   Read and follow `agent-kit/BUILDER.md` for all tasks.
+   The framework operates on a strict Adversarial Verification Loop:
+   - For design, planning, and code implementation tasks: Read and follow `framework/BUILDER.md`.
+   - For execution, testing, and mechanical verification tasks: Read and follow `framework/GATEKEEPER.md`.
 
    Project artifacts (intent, design, verification) go in `docs/`.
    ```
 3. Create `docs/` for project-specific artifacts.
-4. Either bring an existing domain profile or let the Builder create one during the first project.
+4. Create a profile link in `framework/domains/` that extends a relevant profile from the [catalog](../catalog/), or let the Builder create one during the first project. See `domains/_template.md` for the link format.
 
 Resulting structure:
 
 ```
 repo/
 ├── AGENTS.md               ← entry point (5 lines)
-├── agent-kit/              ← framework (reusable)
+├── framework/              ← framework (reusable)
 │   ├── BUILDER.md
+│   ├── GATEKEEPER.md
+│   ├── VERSION
 │   ├── domains/
 │   └── templates/
 ├── docs/                   ← project artifacts (intent, design, verification)
@@ -59,6 +66,8 @@ Project code goes in its own directory — never at the repo root.
 | Quick | < 3 files, clear intent | Code + Gate 2 minimum |
 | Standard | Feature-sized | Intent + Design + Code + Verification Log |
 | Full | New project / major rearchitecture | Standard + ADRs + Devil's Advocate self-review |
+
+All sizes load relevant skills when they exist (see Skills section below). For Full, skill loading is mandatory — document that none were found if that's the case.
 
 Quick escalates to Standard if it touches > 3 files or uncovers bugs beyond the original scope.
 
@@ -125,6 +134,7 @@ Architecture + decisions + risks. Template: `templates/DESIGN.md`
 | Section | Content |
 |---------|---------|
 | Domain Profile Selection Rationale | Candidates, scores, exclusions, selected profile |
+| Skills Loaded | Skills matched and loaded, or "none" if no skills apply |
 | Stack | Technologies with verified versions |
 | Structure | Code organization |
 | Data Flow | How data moves, especially across technology boundaries |
@@ -155,13 +165,19 @@ One log per project. Completed logs remain as historical evidence.
 
 ## Domain profile selection contract
 
-1. Build candidates from `agent-kit/domains/*.md`, excluding `_template.md` and `README.md`
-2. Read each candidate's metadata: `Profile ID`, `Match Keywords`, `Use When`, `Do Not Use When`
-3. Exclude profiles where `Do Not Use When` matches explicit user constraints
-4. Score remaining profiles by keyword overlap with prompt/stack (`+1` per keyword hit)
-5. Select only if highest score is unique and `>= 2`
-6. If tied or below threshold: ask the human. If no clarification, create a new profile from `_template.md`
-7. Record selected profile and reason in the Design document
+Profiles in `framework/domains/` can be standalone or links that extend base profiles from `catalog/`:
+
+1. Build candidates from `framework/domains/*.md`, excluding `_template.md` and `README.md`
+2. For each candidate, check for an `extends` field:
+   - If `extends` exists: load the base profile's metadata from `catalog/`
+   - If no `extends`: read the metadata directly from the profile
+3. Read selection metadata: `Profile ID`, `Match Keywords`, `Use When`, `Do Not Use When`
+4. Exclude profiles where `Do Not Use When` matches explicit user constraints
+5. Score remaining profiles by keyword overlap with prompt/stack (`+1` per keyword hit)
+6. Select only if highest score is unique and `>= 2`
+7. If tied or below threshold: ask the human. If no clarification, create a new profile (see Creating)
+8. If selected profile has `extends`: merge base + local pitfalls (appended) + local overrides (replaced) + local decisions (separate). If standalone: use directly
+9. Record selected profile and reason in the Design document
 
 ## Domain profile sections
 
@@ -180,9 +196,9 @@ One log per project. Completed logs remain as historical evidence.
 
 ### Creating a new profile
 
-When no profile matches, the Builder creates one from `domains/_template.md` during the Design phase.
+When a matching base profile exists in `catalog/`, the Builder creates a profile link in `domains/` using `domains/_template.md` with the `extends` field pointing to the catalog profile.
 
-Minimum viable profile: Terminology Mapping + Verification Commands + 2 Common Pitfalls.
+When no base profile exists, the Builder creates a standalone full profile in `domains/` using `templates/DOMAIN_PROFILE-template.md`. Minimum viable profile: Terminology Mapping + Verification Commands + 2 Common Pitfalls. When the profile proves reusable across projects, move it to `catalog/` and replace it with a link.
 
 ### Updating a profile
 
@@ -190,13 +206,20 @@ Minimum viable profile: Terminology Mapping + Verification Commands + 2 Common P
 
 Updates happen immediately, as part of the same change that discovered the gap. A fix without a profile update means the same mistake can happen again.
 
-What to update:
+**Where updates go** depends on their scope:
+
+**Stack-wide discoveries → base profile in `catalog/`:**
 - New pitfalls → Common Pitfalls (What/Correct/Detection)
 - Adjusted commands → Verification Commands
 - Missing or incorrect rules → Integration Rules
 - Stack-wide decisions → Decision History (date, decision, context, constraint)
 - New detection patterns → Automated Checks
 - Missing review items → Review Checklist
+
+**Project-specific discoveries → profile link in `framework/domains/`:**
+- Pitfalls unique to this project's context → Local Pitfalls
+- Gate overrides for this project → Local Overrides
+- Decisions that only apply here → Local Decision History
 
 ## Resuming interrupted work
 
@@ -207,6 +230,36 @@ What to update:
 5. Continue from the next incomplete step — do not redo completed gates
 
 If no verification log exists, look for intent and design docs in `docs/`. If nothing exists, start fresh.
+
+## Skills
+
+Skills are optional guidance documents that inform design and implementation quality without replacing the framework process or domain profiles.
+
+### Where skills live
+
+| Location | Scope | Example |
+|----------|-------|---------|
+| `.github/skills/` | Repo-level — workflow and composition rules specific to this repository | `repo-frontend-workflow` |
+| `.agents/skills/` | Agent-level — external skills installed via tools like [skills.sh](https://skills.sh) | `frontend-design` |
+
+Each skill is a `SKILL.md` file with a `name` and `description` in its frontmatter.
+
+### When skills are loaded
+
+During Standard/Full step 3 (after domain profile, before design), the Builder scans both directories, reads each skill's `description`, and loads skills that match the task domain. For Quick tasks, a skill is loaded only if one clearly matches. Skills are recorded in the Design document.
+
+### Boundary rules
+
+- Skills inform quality (aesthetic direction, API conventions, documentation style)
+- Skills cannot override gates, skip artifacts, or replace domain profile correctness
+- If a skill contradicts the domain profile, the profile wins for technical correctness; the skill wins for domain-specific quality
+- Technical learnings (build failures, pitfalls, integration rules) go in the domain profile, not in skills
+- Process learnings (how this repo executes tasks) go in repo-level skills
+- Project-specific learnings go in `docs/`
+
+### Skills and domain profiles are independent
+
+Domain profiles do not declare which skills to use. Skills do not declare which profiles to select. The Builder evaluates each independently based on the task. This keeps both systems composable — a profile works with any combination of skills, and a skill works with any profile.
 
 ## Self-review protocol
 
