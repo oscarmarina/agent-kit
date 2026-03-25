@@ -155,6 +155,8 @@ LLMs are confident. They will tell you "everything works" when it doesn't. The f
 
 "Assumed to pass" is never valid evidence. If the output isn't in the log, it didn't happen.
 
+When a gate fails, the failure is classified as Product (the code is wrong), Environment (the tool or runner blocked execution), or Process (the gate definition itself was wrong). This distinction makes the verification log more honest and actionable — an environment failure doesn't mean the code is broken, and a process failure means the framework needs adjustment, not the implementation.
+
 Gates also create a recovery mechanism. Each verification log has a Progress section at the top. When a session is interrupted — context limit, network issue, next morning — the new session reads Progress and continues from the last completed step. No rework, no guessing.
 
 ## Why artifacts matter

@@ -24,6 +24,15 @@ Document why this profile was selected so routing is auditable and repeatable.
 
 [If no skills exist or none match, write "None — no matching skills found."]
 
+## Design Status
+
+[Use this section when runtime behavior may invalidate early assumptions. Mark sections, decisions, or assumptions as Provisional, Verified, or Revised After Runtime Validation. If the design is fully stable before implementation, write "All sections currently provisional until runtime verification" or explain why explicit markers are unnecessary.]
+
+| Item | Status | Evidence / Trigger |
+|------|--------|--------------------|
+| [e.g., worker loading strategy] | [Provisional / Verified / Revised After Runtime Validation] | [e.g., pending runtime validation, verified by Gate 3, revised after browser test failure] |
+| [e.g., thumbnail generation strategy] | [Provisional / Verified / Revised After Runtime Validation] | [e.g., design decision only, verified by stress test, changed after memory issue] |
+
 ## Architecture
 
 ### Stack

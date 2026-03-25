@@ -32,6 +32,8 @@ Project-specific questions that the base profile's adversary questions don't cov
 
 Sections here **replace** the corresponding section in the base profile. Only override what differs for this project — omit sections where the base is correct.
 
+Overrides should describe real project-level differences, not temporary runner workarounds. If a command had to change only because of a specific agent shell, sandbox, or execution harness, keep that in the verification log instead of encoding it here.
+
 ### Verification Commands (overrides)
 
 Only include gates that differ from the base profile.

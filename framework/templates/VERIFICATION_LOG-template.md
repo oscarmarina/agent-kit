@@ -30,9 +30,12 @@ This log captures the actual output of every verification gate. It is the source
 
 ## Gate 0: Dependencies
 **Executed:** [Date/Time]
-**Command:** `[actual command run]`
+**Intended command:** `[command defined by the profile or design]`
+**Effective command:** `[actual command run]`
+**Substitution reason:** [Only if the effective command differs from the intended command]
 **Exit code:** [0 or error code]
-**Status:** [PASS / FAIL]
+**Status:** [PASS / FAIL / BLOCKED]
+**Classification:** [Product Failure / Environment Failure / Process Failure / N/A]
 
 <details>
 <summary>Output (click to expand)</summary>
@@ -49,9 +52,12 @@ This log captures the actual output of every verification gate. It is the source
 
 ## Gate 1: Scaffold Verification
 **Executed:** [Date/Time]
-**Command:** `[actual command run]`
+**Intended command:** `[command defined by the profile or design]`
+**Effective command:** `[actual command run]`
+**Substitution reason:** [Only if the effective command differs from the intended command]
 **Exit code:** [0 or error code]
-**Status:** [PASS / FAIL]
+**Status:** [PASS / FAIL / BLOCKED]
+**Classification:** [Product Failure / Environment Failure / Process Failure / N/A]
 
 <details>
 <summary>Output</summary>
@@ -68,9 +74,12 @@ This log captures the actual output of every verification gate. It is the source
 
 ## Gate 2: Feature Verification
 **Executed:** [Date/Time]
-**Command:** `[actual command run]`
+**Intended command:** `[command defined by the profile or design]`
+**Effective command:** `[actual command run]`
+**Substitution reason:** [Only if the effective command differs from the intended command]
 **Exit code:** [0 or error code]
-**Status:** [PASS / FAIL]
+**Status:** [PASS / FAIL / BLOCKED]
+**Classification:** [Product Failure / Environment Failure / Process Failure / N/A]
 
 <details>
 <summary>Output</summary>
@@ -87,9 +96,12 @@ This log captures the actual output of every verification gate. It is the source
 
 ## Gate 3: Test Verification
 **Executed:** [Date/Time]
-**Command:** `[actual command run]`
+**Intended command:** `[command defined by the profile or design]`
+**Effective command:** `[actual command run]`
+**Substitution reason:** [Only if the effective command differs from the intended command]
 **Exit code:** [0 or error code]
-**Status:** [PASS / FAIL]
+**Status:** [PASS / FAIL / BLOCKED]
+**Classification:** [Product Failure / Environment Failure / Process Failure / N/A]
 **Tests passed:** [X/Y]
 **Coverage:** [X% or "not measured"]
 
@@ -108,9 +120,12 @@ This log captures the actual output of every verification gate. It is the source
 
 ## Gate 4: Final Verification (Clean Build)
 **Executed:** [Date/Time]
-**Clean command:** `[Use the domain profile POSIX or PowerShell clean command variant]`
+**Intended command:** `[Use the domain profile clean-build command sequence]`
+**Effective command:** `[actual clean-build command(s) run]`
+**Substitution reason:** [Only if the effective command differs from the intended command]
 **Exit code:** [0 or error code]
-**Status:** [PASS / FAIL]
+**Status:** [PASS / FAIL / BLOCKED]
+**Classification:** [Product Failure / Environment Failure / Process Failure / N/A]
 **Tests passed:** [X/Y]
 
 <details>
@@ -154,6 +169,7 @@ This log captures the actual output of every verification gate. It is the source
 *(Record any gate failures and their resolutions here)*
 
 ### [Date] Gate [N] FAILED
+**Classification:** [Product Failure / Environment Failure / Process Failure]
 **Error:** [What went wrong]
 **Root Cause:** [Why — not symptoms, actual cause]
 **Fix:** [What was done]

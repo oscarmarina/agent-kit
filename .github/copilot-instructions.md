@@ -45,6 +45,7 @@ When someone copies `framework/` into their own repository and points `AGENTS.md
 - **Four lenses**: User, Architecture, Adversary, Domain — thinking modes, not sequential phases
 - **Anti-Loop Rule**: produce the Intent document before continuing to investigate
 - **Pre-Implementation Checkpoint**: 4 questions before writing any code
+- **Debug Sprint**: bounded mode for dense debugging loops — verification log stays current, design doc reconciled when sprint ends
 - **Resume**: verification log Progress section enables continuing interrupted work
 
 ### The process (BUILDER.md)

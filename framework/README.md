@@ -59,6 +59,14 @@ Project code goes in its own directory — never at the repo root.
 | Bug fix | `Read AGENTS.md. [Description of the problem].` |
 | Resume work | `Read AGENTS.md. Continue where the last session left off.` |
 
+**What the framework needs from your prompt:**
+
+- Always start with `Read AGENTS.md` — without it, the LLM has no framework
+- Name the stack explicitly (`Lit 3, Vite, TypeScript`) — these keywords drive domain profile selection
+- State constraints as MUST / MUST NOT — they get captured in the Intent and enforced throughout
+- If you have reference code, say "study for patterns, do not copy" — otherwise the LLM may copy verbatim
+- Everything you don't say, the LLM decides alone. Be explicit about what matters to you
+
 ## Process sizes
 
 | Size | Criteria | Artifacts produced |
@@ -85,6 +93,12 @@ When in doubt, the Builder goes one size up.
 
 Commands come from the domain profile. If no profile exists, they are defined in the Design document.
 
+If the exact command cannot be executed because of environment or tooling restrictions, the GateKeeper may use a mechanically equivalent command that preserves verification intent. In that case, the verification log must record:
+
+- the intended command
+- the effective command actually executed
+- why the substitution was necessary
+
 "Assumed to pass" is never valid evidence. Real output must be pasted in the verification log.
 
 ### On failure
@@ -97,6 +111,12 @@ Commands come from the domain profile. If no profile exists, they are defined in
 6. Update Progress section
 7. Update the domain profile with the new pitfall/rule/check
 8. Proceed to next phase
+
+Failures should be classified when possible as:
+
+- Product Failure
+- Environment Failure
+- Process Failure
 
 ## Pre-implementation checkpoint
 
@@ -135,6 +155,7 @@ Architecture + decisions + risks. Template: `templates/DESIGN.md`
 |---------|---------|
 | Domain Profile Selection Rationale | Candidates, scores, exclusions, selected profile |
 | Skills Loaded | Skills matched and loaded, or "none" if no skills apply |
+| Design Status | Which sections or decisions are Provisional, Verified, or Revised After Runtime Validation |
 | Stack | Technologies with verified versions |
 | Structure | Code organization |
 | Data Flow | How data moves, especially across technology boundaries |
@@ -148,6 +169,12 @@ Architecture + decisions + risks. Template: `templates/DESIGN.md`
 | Test Strategy | What to test, how, coverage target, what not to test |
 
 Adversary Questions Applied and Domain Pitfalls Applied are separate mandatory sections. Checking pitfalls does not replace answering adversary questions — they serve different purposes.
+
+For integration-heavy work, the design may explicitly mark sections or decisions as:
+
+- **Provisional** — current best plan, not yet validated by runtime behavior
+- **Verified** — checked against implementation or runtime evidence
+- **Revised After Runtime Validation** — changed after real execution disproved the initial plan
 
 ### Verification Log (`docs/[project]-verification.md`)
 
@@ -210,11 +237,13 @@ Updates happen immediately, as part of the same change that discovered the gap. 
 
 **Stack-wide discoveries → base profile in `catalog/`:**
 - New pitfalls → Common Pitfalls (What/Correct/Detection)
-- Adjusted commands → Verification Commands
+- Reusable command variants required by the stack or target operating environment → Verification Commands
 - Missing or incorrect rules → Integration Rules
 - Stack-wide decisions → Decision History (date, decision, context, constraint)
 - New detection patterns → Automated Checks
 - Missing review items → Review Checklist
+
+Do not promote one-off runner quirks, sandbox restrictions, or transient shell workarounds into the profile. Those belong in the verification log as intended/effective command evidence.
 
 **Project-specific discoveries → profile link in `framework/domains/`:**
 - Pitfalls unique to this project's context → Local Pitfalls
@@ -270,3 +299,16 @@ After implementation, the Builder shifts to Adversary Lens:
 3. Check every Common Pitfall against the codebase
 4. Verify every Review Checklist item
 5. **Full projects only:** Devil's Advocate section (3 scenarios, weakest link, attack vector) + minimum 3 genuine findings
+
+## Debugging under runtime uncertainty
+
+When a task enters repeated runtime failure or high-churn integration debugging, the Builder may temporarily shift into a short Debug Sprint. During that sprint:
+
+- root-cause isolation and rerun loops take priority
+- the verification log stays current
+- the domain profile is updated as soon as new reusable lessons are confirmed
+- the design document may lag briefly, but must be reconciled before the phase is declared complete
+
+The Debug Sprint ends as soon as the root cause is understood well enough to update the design, the problem is reclassified as environment/process rather than product debugging, or the reproduce/fix/verify loop is no longer the immediate bottleneck.
+
+This is not a relaxation of standards. It is a controlled way to avoid process friction during live debugging.

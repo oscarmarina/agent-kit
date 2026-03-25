@@ -89,9 +89,34 @@ When in doubt, go one size up. The cost of slight over-documentation is lower th
 
 For Standard and Full tasks, produce the Intent document **before** continuing to investigate. Research enough to understand the prompt, then commit decisions to `docs/[project]-intent.md`. If a decision is unclear, write it as an open question in the Intent and ASK the human — don't keep researching hoping the answer will appear. The Intent is where decisions are recorded; internal deliberation without an artifact is wasted work that disappears on context loss.
 
+### Debug Sprint Mode
+
+When a Standard or Full task enters repeated runtime failure, integration uncertainty, or high-churn debugging, the Builder may enter a **Debug Sprint**.
+
+Use it only when all of the following are true:
+
+- progress is blocked by live failures rather than missing scope understanding
+- the next best action is a short reproduce/isolate/fix/verify loop
+- maintaining the design doc in lockstep would slow root-cause analysis more than it improves clarity
+
+During a Debug Sprint:
+
+- prioritize minimal reproduction, root-cause isolation, fixes, and verification
+- keep the verification log current with real failures and reruns
+- update the domain profile immediately when a new pitfall or bad assumption is confirmed
+- allow the design doc to lag temporarily
+
+The sprint MUST end as soon as one of these is true:
+
+- the root cause is understood well enough to update the design confidently
+- the failure is reclassified as an environment or process problem rather than a product-debugging loop
+- the reproduce/fix/verify loop is no longer the immediate bottleneck
+
+When the sprint ends, the Builder MUST reconcile the design doc before declaring the phase complete. The framework tolerates temporary documentation lag during active debugging; it does not tolerate leaving the project in an unreconciled state.
+
 ## Verification Protocol (Adversarial Handoff)
 
-**You NEVER verify your own work.** You are strictly the Implementer. 
+**You NEVER verify your own work.** You are strictly the Implementer.
 Once you have prepared the code for a specific Gate phase, your role pauses. You must signal the completion of the phase and hand control over to the **GateKeeper**.
 
 1. Finish writing the code/scaffolding.
@@ -152,7 +177,7 @@ The Domain Profile is a shared knowledge structure, but the Builder and the Gate
 **GateKeeper Updates (Runtime & Mechanical Memory):**
 - **Trigger:** Gate failures, test regressions, build errors.
 - **Common Pitfalls:** Bugs discovered during strict verification.
-- **Verification Commands:** Commands that needed adjustment to pass the environment.
+- **Verification Commands:** Reusable command variants required by the stack or target operating environment. One-off runner workarounds stay in the verification log, not in the profile.
 - **Automated Checks:** New bash detection patterns to strictly enforce.
 
 **The domain profile is a living document. Every bug fix that reveals a gap is a learning opportunity — capture it immediately or it's lost.**
@@ -172,6 +197,14 @@ Key sections:
 ### Design Document (`docs/[project]-design.md`)
 Architecture + decisions + risks + domain profile selection rationale in one document. Replaces separate PRD, Tech Spec, Review, and Implementation Plan. Template: `framework/templates/DESIGN.md`
 
+The design document may mark sections or decisions as one of:
+
+- **Provisional** — current best plan, not yet validated by runtime behavior
+- **Verified** — checked against implementation/runtime evidence
+- **Revised After Runtime Validation** — changed because reality contradicted the initial design
+
+Use these markers to reduce false certainty during integration-heavy work.
+
 ### Verification Log (`docs/[project]-verification.md`)
 Mechanical proof. Every gate execution with real output. Source of truth for "does it work?" and "where did we stop?". One file per project — completed logs remain as historical evidence. Template: `framework/templates/VERIFICATION_LOG-template.md`
 
@@ -180,6 +213,14 @@ Key sections:
 - **Gates** — Real command output for each gate
 - **Failure History** — Root causes and fixes (feeds domain profile learning)
 - **Domain Profile Updates** — What changed in the profile and why (closes the learning loop)
+
+If a verification command differs from the originally intended command because of tool or environment constraints, record both:
+
+- the **intended command**
+- the **effective command actually executed**
+- the **reason the substitution was necessary**
+
+The effective command is the source of truth for verification evidence.
 
 **No PROJECT_STATUS.md** — the Verification Log IS the status.
 
@@ -231,4 +272,6 @@ If no verification log exists, look for intent and design docs in `docs/` to und
 - Don't over-engineer. The right amount of complexity is the minimum needed for the current task.
 - **Project code goes in its own directory** — not at the repository root. Name the directory after the project (e.g., `mcp-task-widget/`). Config files (`package.json`, `tsconfig.json`, `vite.config.ts`, etc.), source code, and build output belong inside this directory. The repo root is reserved for `AGENTS.md`, `framework/`, and `docs/`.
 - **Every bug fix must update the domain profile.** If you fix a problem caused by a missing pitfall, incorrect integration rule, or wrong assumption — add it to the domain profile in the same commit. A fix without a domain profile update means the same mistake can happen again in the next project.
+- **Every confirmed runtime lesson must update either the domain profile or the verification log immediately.** If the lesson is stack-reusable, it belongs in the profile. If it is environment-specific, it still belongs in the verification log.
 - **Skills are guidance, not process.** A skill can inform how you design and implement (aesthetic direction, API conventions, documentation style) but cannot override gates, skip artifacts, or replace domain profile pitfalls. If a skill contradicts the domain profile, the profile wins for technical correctness; the skill wins for domain-specific quality.
+- **Framework artifacts define the output structure.** If the user's prompt includes its own output format (e.g., "give me architecture overview, then full code, then decisions"), capture those expectations as Constraints in the Intent but produce the framework's artifacts (Intent, Design, Verification Log). The user's requests are addressed — architecture goes in the Design doc's Architecture section, decisions go in Decisions, setup notes go in Integration Rules. What changes is the vehicle, not the content.

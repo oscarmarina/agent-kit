@@ -28,6 +28,8 @@ Map generic framework terms to domain-specific terms:
 
 Exact commands for each Verification Gate. These override any generic assumptions.
 
+Only record command forms that are expected to be reusable for this stack or its real target operating environments. Do not encode one-off runner quirks, sandbox restrictions, or transient shell workarounds here; those belong in the verification log as intended/effective command evidence.
+
 **GATE 0 (Dependencies):**
 - Command: `[e.g., npm install, pip install -r requirements.txt]`
 - Expected output: [what success looks like]
@@ -49,6 +51,8 @@ Exact commands for each Verification Gate. These override any generic assumption
 - Clean command (POSIX): `[e.g., rm -rf node_modules dist && npm install && npm run build && npm test]`
 - Clean command (PowerShell): `[e.g., if (Test-Path node_modules) { Remove-Item node_modules -Recurse -Force }; if (Test-Path dist) { Remove-Item dist -Recurse -Force }; npm install; npm run build; npm test]`
 - Expected output: [everything passes from clean state]
+
+If different command variants are needed, prefer documenting stable target-environment variants such as POSIX vs PowerShell. Do not add variants that exist only because a specific agent runner or shell session is unreliable.
 
 ## Common Pitfalls
 
@@ -110,6 +114,8 @@ Detection patterns that can be executed mechanically. Each maps to a pitfall, in
 ## Decision History
 
 Decisions that apply to ALL projects with this stack. Each entry is a permanent constraint derived from real project experience. New entries are added when a project discovers a stack-wide decision.
+
+Do not store transient tooling incidents here. A decision belongs here only when it should constrain future projects on the same stack.
 
 | Date | Decision | Context | Constraint |
 |------|----------|---------|------------|
