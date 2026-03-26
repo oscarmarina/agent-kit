@@ -4,6 +4,8 @@ This log captures the actual output of every verification gate. It is the source
 
 **Rule:** No entry may be written without executing the command and pasting real output. "Assumed to pass" is not an entry.
 
+**Format:** This template provides both **compact** and **expanded** gate formats. Use compact for passing gates; use expanded for failures (where raw output has diagnostic value). See Context Pressure Protocol in BUILDER.md.
+
 ---
 
 ## Progress
@@ -28,7 +30,21 @@ This log captures the actual output of every verification gate. It is the source
 
 ---
 
-## Gate 0: Dependencies
+## Gates (compact format — use for passing gates)
+
+| Gate | Command | Exit | Status | Tests | Coverage | Notes |
+|------|---------|------|--------|-------|----------|-------|
+| 0 | `[command]` | [0] | [PASS] | — | — | [notes] |
+| 1 | `[command]` | [0] | [PASS] | — | — | [notes] |
+| 2 | `[command]` | [0] | [PASS] | [X/Y] | — | [notes] |
+| 3 | `[command]` | [0] | [PASS] | [X/Y] | [X%] | [notes] |
+| 4 | `[command]` | [0] | [PASS] | [X/Y] | — | [notes] |
+
+*Use the expanded format below ONLY for failed gates or when the command/output needs detailed recording (substitution reason, classification, raw output). Delete whichever format you don't use for each gate.*
+
+---
+
+## Gate 0: Dependencies (expanded format — use for failures)
 **Executed:** [Date/Time]
 **Intended command:** `[command defined by the profile or design]`
 **Effective command:** `[actual command run]`
@@ -156,11 +172,11 @@ This log captures the actual output of every verification gate. It is the source
 3. **If I had to break this, I would:** [attack vector]
 
 ### Findings
-[Minimum 3 genuine findings for Full projects. If fewer, document what you checked.]
+[List genuine vulnerabilities or logic flaws. If none found, document the critical attack vectors investigated and why they are not exploitable. Do not fabricate findings to meet a quota.]
 
-| # | Severity | Finding | Impact |
-|---|----------|---------|--------|
-| 1 | [P0/P1/P2] | [Description] | [What it affects] |
+| # | Severity | Finding / Investigation | Impact / Conclusion |
+|---|----------|------------------------|---------------------|
+| 1 | [P0/P1/P2 or "Investigated"] | [Description or attack vector checked] | [What it affects, or why it's secure] |
 
 ---
 

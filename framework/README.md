@@ -4,8 +4,8 @@
 
 | File | Purpose |
 |------|---------|
-| `BUILDER.md` | Process contract — lenses, gates, pre-implementation checkpoint, rules |
-| `GATEKEEPER.md` | Verification agent — executes commands, enforces gates, updates pitfalls |
+| `BUILDER.md` | Process contract — lenses, gates, pre-implementation checkpoint, single/dual-agent verification, rules |
+| `GATEKEEPER.md` | Verification agent contract — executes commands, enforces gates, updates pitfalls |
 | `domains/_template.md` | Template for creating profile links that extend catalog profiles |
 | `domains/README.md` | How domain profiles work — types, matching, merge rules |
 | `domains/*.md` | Domain profiles — standalone or links extending catalog base profiles |
@@ -17,16 +17,7 @@
 ## Setup
 
 1. Copy `framework/` into the target repo.
-2. Create `AGENTS.md` at the repo root:
-   ```markdown
-   # Agent Instructions
-
-   The framework operates on a strict Adversarial Verification Loop:
-   - For design, planning, and code implementation tasks: Read and follow `framework/BUILDER.md`.
-   - For execution, testing, and mechanical verification tasks: Read and follow `framework/GATEKEEPER.md`.
-
-   Project artifacts (intent, design, verification) go in `docs/`.
-   ```
+2. Copy `AGENTS.md` from the repo root into the target repo (or create it — see `AGENTS.md` for the current format). It defines the reading order: domain profile first (if it exists), then `BUILDER.md`, then `GATEKEEPER.md`.
 3. Create `docs/` for project-specific artifacts.
 4. Create a profile link in `framework/domains/` that extends a relevant profile from the [catalog](../catalog/), or let the Builder create one during the first project. See `domains/_template.md` for the link format.
 
@@ -34,7 +25,7 @@ Resulting structure:
 
 ```
 repo/
-├── AGENTS.md               ← entry point (5 lines)
+├── AGENTS.md               ← entry point (reading order)
 ├── framework/              ← framework (reusable)
 │   ├── BUILDER.md
 │   ├── GATEKEEPER.md
@@ -72,8 +63,8 @@ Project code goes in its own directory — never at the repo root.
 | Size | Criteria | Artifacts produced |
 |------|----------|--------------------|
 | Quick | < 3 files, clear intent | Code + Gate 2 minimum |
-| Standard | Feature-sized | Intent + Design + Code + Verification Log |
-| Full | New project / major rearchitecture | Standard + ADRs + Devil's Advocate self-review |
+| Standard | Feature-sized | Intent + Code + Verification Log (Design optional — see Standard step 5) |
+| Full | New project / major rearchitecture | Intent + Design (mandatory, with ADRs) + Code + Verification Log + Devil's Advocate self-review |
 
 All sizes load relevant skills when they exist (see Skills section below). For Full, skill loading is mandatory — document that none were found if that's the case.
 
@@ -120,14 +111,14 @@ Failures should be classified when possible as:
 
 ## Pre-implementation checkpoint
 
-Four questions answered before writing any implementation code:
+Four questions inlined into Standard step 4 (and applicable to all sizes):
 
 1. **Do my dependencies already solve this?** Read the public API (`.d.ts`, package docs, `npm view`). If a library provides the functionality, use it.
 2. **What environment assumption could be wrong?** Identify at least one assumption about runtime, host, or deployment target.
 3. **Have I checked the domain profile pitfalls?** Scan every Common Pitfall and Adversary Question against the plan.
 4. **Is this still the right size?** Re-evaluate Quick vs Standard vs Full.
 
-This is a mental gate, not a document.
+Inlined into the process flow so it cannot be skipped by forgetting to consult a separate section.
 
 ## Artifacts
 
@@ -142,6 +133,8 @@ Source of truth for scope. Template: `templates/INTENT.md`
 | Decisions | Choices with rejected alternatives and rationale |
 | Constraints | MUST / MUST NOT / SHOULD rules |
 | Scope | IN and OUT boundaries |
+| Adversary Questions Applied | Answers to profile questions (when no Design doc is produced) |
+| Domain Pitfalls Applied | How each pitfall is addressed (when no Design doc is produced) |
 | Acceptance | Verifiable conditions that define "done" |
 | Supersedes | Reference to previous Intent if reworking a feature |
 
@@ -149,7 +142,7 @@ The Anti-Loop Rule requires the Intent to be produced before continued investiga
 
 ### Design (`docs/[project]-design.md`)
 
-Architecture + decisions + risks. Template: `templates/DESIGN.md`
+Architecture + decisions + risks. **Required for Full; optional for Standard** (see Standard step 5 in BUILDER.md). Template: `templates/DESIGN.md`
 
 | Section | Content |
 |---------|---------|
@@ -202,9 +195,9 @@ Profiles in `framework/domains/` can be standalone or links that extend base pro
 4. Exclude profiles where `Do Not Use When` matches explicit user constraints
 5. Score remaining profiles by keyword overlap with prompt/stack (`+1` per keyword hit)
 6. Select only if highest score is unique and `>= 2`
-7. If tied or below threshold: ask the human. If no clarification, create a new profile (see Creating)
+7. If tied: ask the human; if unavailable, select the profile with the most Common Pitfalls. If below threshold: ask the human; if unavailable, create a new profile (see Creating)
 8. If selected profile has `extends`: merge base + local pitfalls (appended) + local overrides (replaced) + local decisions (separate). If standalone: use directly
-9. Record selected profile and reason in the Design document
+9. Record selected profile and reason in the Design document (or Intent's Decisions table if no Design is produced)
 
 ## Domain profile sections
 
@@ -298,7 +291,20 @@ After implementation, the Builder shifts to Adversary Lens:
 2. Run every Automated Check from the domain profile (execute command, verify result)
 3. Check every Common Pitfall against the codebase
 4. Verify every Review Checklist item
-5. **Full projects only:** Devil's Advocate section (3 scenarios, weakest link, attack vector) + minimum 3 genuine findings
+5. **Full projects only:** Devil's Advocate section (3 scenarios, weakest link, attack vector) + findings (genuine issues found, or evidence of investigation if none)
+
+## Context pressure
+
+LLM sessions have finite context windows. When context is scarce, artifacts must be prioritized:
+
+1. **Verification log Progress section** — enables resume. Always keep current.
+2. **Domain profile updates** — knowledge that survives across projects. Write immediately on discovery.
+3. **Intent document** — scope anchor. Prevents creep after compaction.
+4. **Design document** — architecture decisions. For Standard, the Intent may suffice.
+
+Passing gates may use the compact table format; failures always use the expanded format with raw output. See `templates/VERIFICATION_LOG-template.md` for both formats.
+
+After context compaction, do not regenerate artifacts already written to disk. Read the verification log and domain profile, then continue.
 
 ## Debugging under runtime uncertainty
 
@@ -308,6 +314,8 @@ When a task enters repeated runtime failure or high-churn integration debugging,
 - the verification log stays current
 - the domain profile is updated as soon as new reusable lessons are confirmed
 - the design document may lag briefly, but must be reconciled before the phase is declared complete
+
+**Integration Discovery variant:** When a Debug Sprint is caused by integrating a dependency with undocumented, partially documented, or version-mismatched APIs, each discovered API surface or behavioral quirk is recorded in the domain profile as it is confirmed — not at the end of the sprint. The sprint ends when the integration surface is stable.
 
 The Debug Sprint ends as soon as the root cause is understood well enough to update the design, the problem is reclassified as environment/process rather than product debugging, or the reproduce/fix/verify loop is no longer the immediate bottleneck.
 

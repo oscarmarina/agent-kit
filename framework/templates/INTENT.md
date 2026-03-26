@@ -49,6 +49,24 @@ Key choices made by the human or agreed during design discussion.
 - [Explicitly excluded — e.g., "No multi-user sync"]
 - [Deferred — e.g., "No PWA offline support in v1"]
 
+## Adversary Questions Applied
+
+*Include this section when no separate Design document is produced (Standard projects with straightforward architecture). If a Design document exists, these tables belong there instead. See BUILDER.md Standard step 5.*
+
+| Question | Answer for This Design |
+|----------|----------------------|
+| [Profile adversary question] | [How this design addresses it] |
+
+**If the profile has no Adversary Questions, write "No adversary questions in profile."**
+
+## Domain Pitfalls Applied
+
+| Pitfall | Applies? | How Addressed |
+|---------|----------|---------------|
+| [Profile pitfall name] | [Yes/No] | [How this design handles it, or why it doesn't apply] |
+
+**If no domain profile is loaded yet, write "No profile loaded — will be created during this project."**
+
 ## Acceptance
 
 [Specific, verifiable conditions that define "done"]

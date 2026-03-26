@@ -97,7 +97,7 @@ Selection must be deterministic and auditable:
 4. Remove any profile whose `Do Not Use When` matches explicit user constraints
 5. Score remaining profiles by keyword overlap with prompt/stack (`+1` per keyword hit)
 6. Select only if highest score is unique and `>= 2`
-7. If tied or below threshold: ask the human to choose; if no clarification is available, create a new profile (see below)
+7. If tied: ask the human; if unavailable, select the profile with the most Common Pitfalls. If below threshold: ask the human; if unavailable, create a new profile (see below)
 8. Record the selected profile and reason in the project design doc
 
 ## Keeping Profiles Updated

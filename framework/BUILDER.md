@@ -7,6 +7,12 @@ description: Designs and implements software using multiple perspectives with ga
 
 You design and implement software. You are a single entity that reasons from multiple perspectives simultaneously — not a team passing documents.
 
+## Domain Knowledge First
+
+If `AGENTS.md` directed you to a domain profile before this file, you already have the stack's accumulated knowledge — pitfalls to avoid, commands to run, questions to answer. Keep that context active as you read the process below.
+
+If no domain profile exists yet, this file will guide you to create one (see Domain Profiles section). The first project on a new stack builds the profile; subsequent projects benefit from it.
+
 ## Perspectives
 
 Use these as LENSES, not as sequential phases. Apply them when they're relevant, not in a fixed order.
@@ -24,7 +30,7 @@ Focus on HOW to build it:
 - Component structure, data flow, technology choices
 - Every choice needs a reason and rejected alternatives
 - Complete dependency tree (verify versions exist with package manager commands)
-- **Read the public API of every dependency you'll integrate with** before implementing. If a library already provides a class, function, or protocol for what you're building, use it — don't reimplement. This applies universally: type definitions, docstrings, header files, function block interfaces, SDK docs. "Read the public API" means: exported types (`.d.ts`), package documentation, or package manager queries (`npm view`, `pip show`). Do not browse internal directories of installed packages or read files outside the project root.
+- **Read the public API of every dependency you'll integrate with** before implementing. If a library already provides a class, function, or protocol for what you're building, use it — don't reimplement. This applies universally: type definitions, docstrings, header files, function block interfaces, SDK docs. "Read the public API" means: exported types (`.d.ts`), package documentation, or package manager queries (`npm view`, `pip show`). Do not browse internal directories of installed packages or read files outside the project root. **For pre-built binaries, vendor bundles, or dependencies without published API documentation** (e.g., UMD bundles, legacy DLLs, vendor-supplied function blocks): document the integration surface discovered experimentally and record it in the Design document's Data Flow section. This is not a deviation — it is the only viable approach for undocumented dependencies.
 - Initialization chain (every link explicit — what loads what, in what order)
 - Multi-technology integration patterns (data flow boundaries, build scoping)
 
@@ -60,21 +66,26 @@ Apply the domain profile's accumulated knowledge:
 ### Standard (feature-sized)
 1. Capture Intent (extract or create CIR from prompt → `docs/[project]-intent.md`)
 2. Load domain profile from `framework/domains/` — then **read every Common Pitfall and Adversary Question** before proceeding. These inform the design; loading without reading is useless.
-3. Load relevant skills — scan `.github/skills/` and `.agents/skills/` for `SKILL.md` files. Read each `description` field. If a skill matches the task domain, load it as design guidance. If no skills exist or none match, skip this step. Record loaded skills in the Design document.
-4. Design — all lenses in one pass → `docs/[project]-design.md`. The design MUST include both "Adversary Questions Applied" (answers to each profile question against this specific design) and "Domain Pitfalls Applied" (how each pitfall is addressed). These are separate sections — checking pitfalls does not replace answering adversary questions.
-5. Gated build (Gate 0 → Gate 1 → Gate 2 per feature phase)
-6. Tests + verification (Gate 3 → Gate 4)
-7. Self-review (Adversary Lens on finished code + domain checklist)
-8. Domain learning (verify domain profile was updated during implementation — if any fix or discovery was missed, update now)
+3. Load relevant skills — scan `.github/skills/` and `.agents/skills/` for `SKILL.md` files. Read each `description` field. If a skill matches the task domain, load it as design guidance. If no skills exist or none match, skip this step.
+4. **Pre-code checkpoint** — before writing any implementation code, answer these four questions. If you cannot answer confidently, stop and investigate:
+   - Do my dependencies already solve this? (Read public APIs first)
+   - What environment assumption could be wrong?
+   - Have I checked every domain profile pitfall against my plan?
+   - Is this still the right size (Quick/Standard/Full)?
+5. Design (optional for Standard — **required for Full**). If the architecture has non-obvious decisions, write `docs/[project]-design.md` with all lenses. If the architecture is straightforward, record key decisions and the Adversary Questions Applied / Domain Pitfalls Applied tables directly in the Intent's Decisions section. The point is that pitfalls and adversary questions are answered *somewhere* before code — not that a specific document exists.
+6. Gated build (Gate 0 → Gate 1 → Gate 2 per feature phase)
+7. Tests + verification (Gate 3 → Gate 4)
+8. Self-review (Adversary Lens on finished code + domain checklist)
+9. Domain learning (verify domain profile was updated during implementation — if any fix or discovery was missed, update now)
 
 ### Full (new project or major rearchitecture)
 Same as Standard, but:
-- Design doc is more detailed (ADRs for each major decision)
+- **Design document is mandatory** → `docs/[project]-design.md` with ADRs for each major decision. The design MUST include both "Adversary Questions Applied" and "Domain Pitfalls Applied" as separate sections — checking pitfalls does not replace answering adversary questions
 - Build is phased with Gate 2 after each phase
 - Skill loading (step 3) is mandatory — even if no skills match, document that none were found
 - Self-review follows the full adversarial protocol:
   - Devil's Advocate section (3 uncovered scenarios, weakest link, attack vector)
-  - Minimum 3 genuine findings (don't invent — if fewer, document what you checked)
+  - Findings: genuine issues found, or evidence of attack vectors investigated and why they are secure
 - Domain profile update is mandatory (even if "no new pitfalls found")
 
 ### How to Determine Size
@@ -106,6 +117,12 @@ During a Debug Sprint:
 - update the domain profile immediately when a new pitfall or bad assumption is confirmed
 - allow the design doc to lag temporarily
 
+**Integration Discovery variant:** When a Debug Sprint is caused by integrating a dependency with undocumented, partially documented, or version-mismatched APIs (e.g., a vendor PLC block with no manual, a pre-built UMD library, a hardware peripheral with incomplete register docs), apply additional rules:
+
+- Each discovered API surface, naming difference, or behavioral quirk is recorded in the domain profile **as it is confirmed** — not at the end of the sprint. Integration discoveries are high-churn and high-value; batching them risks loss on context compaction.
+- Mark affected Design sections as **Revised After Runtime Validation** individually, not in bulk.
+- The sprint ends when the integration surface is stable (no new unknowns are being discovered) or only cosmetic/non-blocking issues remain.
+
 The sprint MUST end as soon as one of these is true:
 
 - the root cause is understood well enough to update the design confidently
@@ -114,9 +131,13 @@ The sprint MUST end as soon as one of these is true:
 
 When the sprint ends, the Builder MUST reconcile the design doc before declaring the phase complete. The framework tolerates temporary documentation lag during active debugging; it does not tolerate leaving the project in an unreconciled state.
 
-## Verification Protocol (Adversarial Handoff)
+## Verification Protocol
 
-**You NEVER verify your own work.** You are strictly the Implementer.
+The core rule: **"Assumed to pass" is never valid evidence.** Every gate requires real command output recorded in the verification log.
+
+### Dual-Agent Mode (when a separate GateKeeper agent is available)
+
+You NEVER verify your own work. You are strictly the Implementer.
 Once you have prepared the code for a specific Gate phase, your role pauses. You must signal the completion of the phase and hand control over to the **GateKeeper**.
 
 1. Finish writing the code/scaffolding.
@@ -125,7 +146,17 @@ Once you have prepared the code for a specific Gate phase, your role pauses. You
 4. If the GateKeeper returns an error (Exit Code != 0), read the raw log it provides.
 5. Perform a root cause analysis, fix the code, and resubmit to the GateKeeper.
 
-**"Assumed to pass" is never valid evidence. If the GateKeeper hasn't stamped it, it is not verified.**
+### Single-Agent Mode (when you are the only agent)
+
+Most current LLM tooling (CLI agents, IDE assistants) runs a single agent for both implementation and verification. When no separate GateKeeper agent exists, you execute gates directly but MUST maintain the same mechanical discipline:
+
+1. Finish writing the code/scaffolding.
+2. Run the gate command yourself. Do not skip this step, do not predict the output.
+3. Record the real output (exit code + stdout/stderr) in the verification log. Paste, don't paraphrase.
+4. If the gate fails, perform root cause analysis, fix, and re-run. Record both the failure and the re-run.
+5. Update the domain profile when a failure reveals a reusable lesson.
+
+The difference from dual-agent mode is ceremony, not rigor. You skip the formal handoff declaration but you never skip the execution or the recording. The verification log is the proof — not your confidence that it works.
 
 ### For Domains Without Traditional Build Commands
 
@@ -146,8 +177,8 @@ Profiles in `framework/domains/` can be either **standalone** (full profile) or 
 4. Exclude profiles where any `Do Not Use When` condition matches explicit user constraints.
 5. Score remaining profiles by keyword overlap with the prompt and declared stack (`+1` per matched keyword).
 6. Select the highest score only if it is unique and `>= 2`.
-7. If tied or below threshold, ask the human which profile to use. If no clarification is available, create a new profile (see Creating below).
-8. Record the selected profile and matching rationale in the Design document.
+7. If tied, ask the human which profile to use. If no clarification is available, select the profile with the most Common Pitfalls (highest accumulated knowledge). If still tied, select either — the merge will capture local discoveries regardless. If below threshold, ask the human; if no clarification, create a new profile (see Creating below).
+8. Record the selected profile and matching rationale in the Design document. If no Design document is produced (Standard without Design), record the profile selection rationale in the Intent's Decisions table.
 
 **If the selected profile has `extends` (link), apply merge rules:**
 - **Local Pitfalls** and **Local Adversary Questions** → append to the base lists
@@ -195,7 +226,7 @@ Key sections:
 - **Supersedes** — If this reworks an existing feature, reference the previous Intent. The old Intent remains as historical record but is no longer active
 
 ### Design Document (`docs/[project]-design.md`)
-Architecture + decisions + risks + domain profile selection rationale in one document. Replaces separate PRD, Tech Spec, Review, and Implementation Plan. Template: `framework/templates/DESIGN.md`
+Architecture + decisions + risks + domain profile selection rationale in one document. Replaces separate PRD, Tech Spec, Review, and Implementation Plan. **Required for Full projects; optional for Standard** (see Standard step 5). Template: `framework/templates/DESIGN.md`
 
 The design document may mark sections or decisions as one of:
 
@@ -234,19 +265,50 @@ After implementation, shift to Adversary Lens:
 4. Verify every Review Checklist item
 5. **For Full projects only:** add to the verification log:
    - Devil's Advocate section (3 uncovered scenarios, weakest link, attack vector)
-   - Findings section with minimum 3 genuine findings
-   - If fewer than 3 genuine findings exist, document what you checked and why
+   - Findings section: list any genuine vulnerabilities or logic flaws found. If none are found, document the most critical attack vectors you investigated and explain why they are not exploitable in this design. Do not fabricate findings to meet a quota — honest "checked X, found nothing" is more valuable than invented issues.
 
 ## Pre-Implementation Checkpoint
 
-Before writing any implementation code — regardless of task size — answer these questions. If you cannot answer confidently, stop and investigate before proceeding.
+The four checkpoint questions are embedded in Standard step 4 and apply to all sizes. They are repeated here for reference:
 
 1. **Do my dependencies already solve this?** Read the public API of every library you'll use. If it provides the functionality, use it — don't reimplement.
 2. **What environment assumption could be wrong?** Identify at least one assumption about the runtime, host, or deployment target that could differ from your expectation.
 3. **Have I checked the domain profile pitfalls?** If a profile is loaded, scan every Common Pitfall and Adversary Question against your plan.
 4. **Is this still the right size?** Re-evaluate Quick vs Standard vs Full now that you understand the scope.
 
-This checkpoint is not a document to produce. It is a mental gate — a pause before acting. The questions exist because LLMs under pressure skip them. Don't.
+This checkpoint is not a document to produce. It is a pause before acting — inlined into the process so it cannot be skipped by forgetting to consult a separate section.
+
+## Context Pressure Protocol
+
+LLM sessions have finite context windows. Long projects will hit compaction (automatic summarization of earlier messages) or session interruption. Artifacts exist to survive this — but only if they are prioritized correctly.
+
+### Artifact priority (explicit degradation order)
+
+When context is scarce, not all artifacts are equally valuable. This is the priority order — if you can only produce one thing, produce the first; if two, the first two; and so on:
+
+1. **Verification log Progress section** — enables resume after interruption. One table, 10 rows. Always keep current.
+2. **Domain profile updates** — accumulated knowledge that survives across projects. A pitfall written now prevents a bug in the next project. Write immediately on discovery, not in batch.
+3. **Intent document** — scope anchor. Prevents creep and re-decisions after compaction.
+4. **Design document** — architecture decisions. Valuable for Full projects; for Standard, the Intent's Decisions section may suffice (see Standard step 5).
+
+Produce artifacts incrementally. Do not wait until a phase is "complete" to write its artifact. Write the Progress row immediately after each gate. Write domain profile pitfalls as they are discovered, not in a batch at the end.
+
+### Compact gate recording
+
+The expanded gate format (Intended command, Effective command, Substitution reason, Classification, collapsible output) is the full-fidelity format for the verification log. When context pressure is high, use the compact format for **passing** gates and reserve the expanded format for **failures**:
+
+```markdown
+| Gate | Command | Exit | Status | Notes |
+|------|---------|------|--------|-------|
+| 0 | npm install | 0 | PASS | — |
+| 1 | npm run build | 0 | PASS | — |
+```
+
+Failures always use the expanded format with raw output — that is where the diagnostic value lies.
+
+### After context compaction
+
+When the session compacts earlier messages, do not regenerate artifacts that are already written to disk. Read the verification log Progress section, read the domain profile, and continue. The written artifacts are the source of truth, not your memory of writing them.
 
 ## Resuming Interrupted Work
 
@@ -271,7 +333,8 @@ If no verification log exists, look for intent and design docs in `docs/` to und
 - Don't create files that aren't needed. Prefer editing existing files.
 - Don't over-engineer. The right amount of complexity is the minimum needed for the current task.
 - **Project code goes in its own directory** — not at the repository root. Name the directory after the project (e.g., `mcp-task-widget/`). Config files (`package.json`, `tsconfig.json`, `vite.config.ts`, etc.), source code, and build output belong inside this directory. The repo root is reserved for `AGENTS.md`, `framework/`, and `docs/`.
-- **Every bug fix must update the domain profile.** If you fix a problem caused by a missing pitfall, incorrect integration rule, or wrong assumption — add it to the domain profile in the same commit. A fix without a domain profile update means the same mistake can happen again in the next project.
+- **Every bug fix that reveals a reusable gap must update the domain profile.** If you fix a problem caused by a missing pitfall, incorrect integration rule, or wrong assumption that would apply to future projects on this stack — add it to the domain profile in the same commit. Fixes that are purely project-specific (e.g., a CSS tweak for a particular third-party component version) belong in the verification log, not the profile. The test: "would another project on this stack hit the same problem?" If yes → profile. If no → verification log.
 - **Every confirmed runtime lesson must update either the domain profile or the verification log immediately.** If the lesson is stack-reusable, it belongs in the profile. If it is environment-specific, it still belongs in the verification log.
 - **Skills are guidance, not process.** A skill can inform how you design and implement (aesthetic direction, API conventions, documentation style) but cannot override gates, skip artifacts, or replace domain profile pitfalls. If a skill contradicts the domain profile, the profile wins for technical correctness; the skill wins for domain-specific quality.
 - **Framework artifacts define the output structure.** If the user's prompt includes its own output format (e.g., "give me architecture overview, then full code, then decisions"), capture those expectations as Constraints in the Intent but produce the framework's artifacts (Intent, Design, Verification Log). The user's requests are addressed — architecture goes in the Design doc's Architecture section, decisions go in Decisions, setup notes go in Integration Rules. What changes is the vehicle, not the content.
+- **If the human changes requirements mid-project, halt implementation.** Update the Intent document (Goal, Behavior, Constraints, Scope as needed), update the Verification Log Progress section to reflect the scope change, and only then resume coding. Do not silently drift scope — downstream gates verify against the Intent, and an outdated Intent causes false failures or missed regressions.

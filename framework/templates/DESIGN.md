@@ -42,6 +42,8 @@ Document why this profile was selected so routing is auditable and repeatable.
 | [e.g., Angular] | [21.1.4] | [`npm view @angular/core version`] | [App framework] |
 | [e.g., Lit] | [3.3.2] | [`npm view lit version`] | [Web Components] |
 
+*"Verified Via" accepts any auditable source: package manager query (`npm view`, `pip show`), file inspection ("Copied from [path]", "Header in [file]"), vendor documentation ("Datasheet rev. X"), or runtime query ("PLC firmware version read via diagnostic tool"). The point is traceability, not a specific command.*
+
 ### Structure
 
 [Component/module organization — how the code is laid out. List key directories and what each contains.]

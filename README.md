@@ -8,17 +8,20 @@ LLMs make the same mistakes across projects. They skip verification, forget past
 
 Agent Kit solves this with an **Adversarial Verification Loop**:
 
-1. **Dual-Agent Architecture**: A strictly separated `Builder` (writes code) and `GateKeeper` (executes tests). The LLM is forced to prove its work mechanically against an automated opponent, preventing self-approval hallucinations.
+1. **Adversarial Verification**: A `Builder` (writes code) and `GateKeeper` (executes tests) with strict separation of concerns. In dual-agent environments, these are separate agents. In single-agent environments (CLI agents, IDE assistants), the same agent fulfills both roles but maintains the same mechanical discipline — real commands, real output, recorded in the verification log. The principle is proof over claims, regardless of how many agents execute the work.
 2. **Domain profiles** — living documents that accumulate stack-specific knowledge across projects. Every bug fix, every gate failure, every discovery enriches the profile. The next project on the same stack starts knowing what the last one learned.
 
 ## How the process works
 
 ```mermaid
 graph TB
-    %% ── Entry ──
+    %% ── Entry & Reading Order ──
     AGENTS["AGENTS.md<br/><i>entry point</i>"]
-    BUILDER["BUILDER.md<br/><i>process contract</i>"]
-    AGENTS --> BUILDER
+    HAS_PROFILE{"Domain profile<br/>exists?"}
+    AGENTS --> HAS_PROFILE
+    HAS_PROFILE -->|"Yes"| READ_PROFILE["Read domain profile first<br/><i>highest value per token</i>"]
+    HAS_PROFILE -->|"No"| BUILDER
+    READ_PROFILE --> BUILDER["BUILDER.md<br/><i>process contract</i>"]
 
     %% ── Sizing ──
     BUILDER --> SIZE{Determine size}
@@ -26,28 +29,30 @@ graph TB
     SIZE -->|"feature-sized"| STANDARD
     SIZE -->|"new project /<br/>major refactor"| FULL["<b>Full</b><br/>Standard + ADRs +<br/>Devil's Advocate"]
 
-    %% ── Standard flow ──
+    %% ── Standard flow (steps match BUILDER.md) ──
     subgraph STANDARD ["<b>Standard / Full Process</b>"]
         direction TB
         INTENT["1  Capture Intent<br/><i>docs/[project]-intent.md</i>"]
         LOAD_PROFILE["2  Load domain profile"]
         LOAD_SKILLS["3  Load relevant skills<br/><i>.github/skills/ · .agents/skills/</i>"]
-        DESIGN["4  Design — all lenses<br/><i>docs/[project]-design.md</i>"]
-        WRITE_CODE["5  Implement code<br/><i>Builder strictly writes</i>"]
-        HANDOFF["6  Handoff to GateKeeper"]
+        CHECKPOINT["4  Pre-code checkpoint<br/><i>deps? assumptions? pitfalls? size?</i>"]
+        DESIGN["5  Design<br/><i>optional Standard · mandatory Full</i>"]
+        WRITE_CODE["6  Gated build<br/><i>Gate 0 → 1 → 2</i>"]
+        HANDOFF["7  Tests + verification<br/><i>Gate 3 → Gate 4</i>"]
 
         INTENT --> LOAD_PROFILE
         LOAD_PROFILE --> LOAD_SKILLS
-        LOAD_SKILLS --> DESIGN
+        LOAD_SKILLS --> CHECKPOINT
+        CHECKPOINT --> DESIGN
         DESIGN --> WRITE_CODE
         WRITE_CODE --> HANDOFF
     end
 
-    %% ── Verification Loop (GateKeeper) ──
-    subgraph VERIFICATION ["<b>GateKeeper Authority</b>"]
+    %% ── Verification Loop ──
+    subgraph VERIFICATION ["<b>Verification Authority</b><br/><i>dual-agent: GateKeeper · single-agent: self-verify</i>"]
         direction TB
-        GATES["7  Gated build<br/>Gate 0 → 1 → 2"]
-        TESTS["8  Tests + verification<br/>Gate 3 → Gate 4"]
+        GATES["Run gate commands"]
+        TESTS["Record real output"]
         GATES --> TESTS
     end
 
@@ -58,19 +63,19 @@ graph TB
 
     %% ── Connections to/from profile ──
     LOAD_PROFILE -. "load" .-> DP
-    DP -. "pitfalls &<br/>adversary Qs" .-> DESIGN
+    DP -. "pitfalls &<br/>adversary Qs" .-> CHECKPOINT
 
     %% ── Gate failure loop ──
     GATES --> FAIL{"Gate<br/>fails?"}
-    FAIL -->|"Yes"| FIX["Raw log to Builder<br/>→ Fix → Re-run"]
-    FIX --> UPDATE_PROFILE["GateKeeper Updates Profile<br/><i>new pitfall / rule</i>"]
+    FAIL -->|"Yes"| FIX["Raw log → root cause<br/>→ fix → re-run"]
+    FIX --> UPDATE_PROFILE["Update profile<br/><i>new pitfall / rule</i>"]
     UPDATE_PROFILE --> DP
     FIX --> GATES
     FAIL -->|"No"| TESTS
 
     %% ── Learning cycle ──
-    TESTS --> REVIEW["9  Self-review<br/><i>Adversary Lens + domain checklist</i>"]
-    REVIEW --> LEARNING["10  Domain learning<br/><i>verify profile was updated</i>"]
+    TESTS --> REVIEW["8  Self-review<br/><i>Adversary Lens + domain checklist</i>"]
+    REVIEW --> LEARNING["9  Domain learning<br/><i>verify profile was updated</i>"]
     LEARNING --> DP
 
     %% ── Verification log ──
@@ -98,10 +103,13 @@ graph TB
     style DP fill:#4CAF50,color:#fff,stroke:#2E7D32,stroke-width:2px
     style VLOG fill:#2196F3,color:#fff,stroke:#1565C0,stroke-width:2px
     style REVIEW fill:#FF9800,color:#fff,stroke:#E65100,stroke-width:2px
+    style CHECKPOINT fill:#FF9800,color:#fff,stroke:#E65100,stroke-width:2px
     style FAIL fill:#f44336,color:#fff,stroke:#c62828
     style FIX fill:#f44336,color:#fff,stroke:#c62828
     style UPDATE_PROFILE fill:#4CAF50,color:#fff,stroke:#2E7D32
     style LOAD_SKILLS fill:#CE93D8,color:#000,stroke:#8E24AA,stroke-width:1px
+    style HAS_PROFILE fill:#4CAF50,color:#fff,stroke:#2E7D32
+    style READ_PROFILE fill:#4CAF50,color:#fff,stroke:#2E7D32
     style RESUME fill:#9C27B0,color:#fff,stroke:#6A1B9A
     style QUICK fill:#78909C,color:#fff,stroke:#37474F
     style QUICK_DONE fill:#78909C,color:#fff,stroke:#37474F
@@ -109,12 +117,13 @@ graph TB
 ```
 
 **Reading the diagram:**
-- **Green** = Domain Profile — the learning mechanism. Knowledge flows in (from failures) and out (to future projects).
+- **Green** = Domain Profile — the learning mechanism. Knowledge flows in (from failures) and out (to future projects). The entry flow checks for an existing profile before loading BUILDER.md.
 - **Blue** = Verification Log — the proof mechanism. Real command output, not assumptions.
-- **Orange** = Checkpoints — points where the LLM must pause and think before acting.
+- **Orange** = Checkpoints — points where the LLM must pause and think before acting. The pre-code checkpoint (step 4) and self-review are explicit pause points.
 - **Red** = Failure path — failures are captured, root-caused, and fed back into the profile.
 - **Light purple** = Skills — optional guidance loaded before design (aesthetic, conventions, workflow).
 - **Purple** = Resume — interrupted sessions recover from the verification log's Progress section.
+- Steps 1-9 in the Standard/Full subgraph match the step numbers in BUILDER.md. Verification runs in dual-agent mode (separate GateKeeper) or single-agent mode (self-verify with same discipline).
 - The dashed line from Domain Profile back to "Load domain profile" is the **learning cycle**: every project starts with the accumulated knowledge of all previous projects on that stack.
 
 ## The four lenses
@@ -163,9 +172,9 @@ Gates also create a recovery mechanism. Each verification log has a Progress sec
 
 The framework produces three documents per project:
 
-- **Intent** — captures *what* and *why*. The anchor for scope.
-- **Design** — captures *how*. Architecture, decisions, risks, and how domain pitfalls are addressed.
-- **Verification Log** — captures *proof*. Real gate output, failure history, and progress state.
+- **Intent** — captures *what* and *why*. The anchor for scope. Always produced.
+- **Design** — captures *how*. Architecture, decisions, risks, and how domain pitfalls are addressed. Required for Full; optional for Standard (where key decisions live in the Intent).
+- **Verification Log** — captures *proof*. Real gate output, failure history, and progress state. Always produced.
 
 These aren't bureaucracy. They exist because LLMs lose context. The Intent prevents scope creep. The Design prevents the LLM from re-deciding things it already decided. The Verification Log prevents it from re-running gates that already passed. Together, they make the process resilient to the reality of working with LLMs: limited context windows, interrupted sessions, and confident hallucinations.
 
@@ -173,11 +182,20 @@ These aren't bureaucracy. They exist because LLMs lose context. The Intent preve
 
 The framework is LLM-agnostic. Any model that can read markdown and follow instructions can use it.
 
-## Getting started
+## Documentation
 
-See [**GUIDE.md**](GUIDE.md) for a step-by-step tutorial on setting up and using Agent Kit.
+Each document serves a distinct purpose ([Diátaxis](https://diataxis.fr/)):
 
-See [**framework/README.md**](framework/README.md) for the technical reference — file descriptions, gate definitions, artifact specs, and the domain profile contract.
+| Document | Type | Audience | Purpose |
+|----------|------|----------|---------|
+| [**README.md**](README.md) (this file) | Explanation | Human | Why the framework exists and how it works conceptually |
+| [**GUIDE.md**](GUIDE.md) | Tutorial | Human | Step-by-step first project walkthrough |
+| [**framework/README.md**](framework/README.md) | Reference | Human | File descriptions, gate definitions, artifact specs, contracts |
+| [**framework/BUILDER.md**](framework/BUILDER.md) | Agent contract | LLM | Process instructions the LLM follows during implementation |
+| [**framework/GATEKEEPER.md**](framework/GATEKEEPER.md) | Agent contract | LLM | Verification instructions the LLM follows during gate execution |
+| [**catalog/README.md**](catalog/README.md) | How-to guide | Human | How to use and contribute domain profiles |
+
+**Start here:** If you're new, read [GUIDE.md](GUIDE.md). If you need specifics, read [framework/README.md](framework/README.md). If you want to understand the design decisions, read this file.
 
 **Domain profiles:** The [`catalog/`](catalog/) directory contains community-contributed domain profiles built from real projects:
 

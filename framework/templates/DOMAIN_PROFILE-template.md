@@ -80,6 +80,8 @@ Domain-specific questions to answer BEFORE writing code. These target traps that
 
 *(Add questions as they emerge from real failures. A good adversary question would have caught a pitfall before it became a bug.)*
 
+**Quality filter:** Only add questions here that an LLM would NOT generate from the generic Adversary Lens alone. Questions like "What happens if the server returns 404?" are already covered by generic adversary reasoning. Questions like "What happens when the annotation extension dispatches events to appConfig properties that were renamed between major versions?" require domain-specific experience — those belong here. If an LLM would ask it anyway without the profile, it adds noise rather than signal.
+
 **These questions must be answered in the Design document's "Adversary Questions Applied" section — not just read. Checking pitfalls is necessary but not sufficient; adversary questions target how traps interact with a specific design.**
 
 ## Integration Rules

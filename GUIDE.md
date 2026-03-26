@@ -44,19 +44,11 @@ your-repo/
 └── docs/
 ```
 
-Open `AGENTS.md` and verify it contains:
+Open `AGENTS.md` and verify it contains reading order instructions that point to `framework/domains/` first (for existing domain profiles), then `framework/BUILDER.md`, then `framework/GATEKEEPER.md`.
 
-```markdown
-# Agent Instructions
+The key principle: if a domain profile already exists for your stack, the LLM reads it first — pitfalls, adversary questions, and verification commands are the highest-value knowledge per token. If no profile exists (first project on a new stack), the LLM skips straight to `BUILDER.md` which will guide it to create one.
 
-The framework operates on a strict Adversarial Verification Loop:
-- For design, planning, and code implementation tasks: Read and follow `framework/BUILDER.md`.
-- For execution, testing, and mechanical verification tasks: Read and follow `framework/GATEKEEPER.md`.
-
-Project artifacts (intent, design, verification) go in `docs/`.
-```
-
-That's all `AGENTS.md` needs. The Builder handles design and implementation; the GateKeeper handles verification. The process logic lives in their respective files.
+In single-agent environments (most CLI tools and IDE assistants), the same LLM fulfills both Builder and GateKeeper roles — `BUILDER.md` defines how that works. The process logic lives in their respective files.
 
 ## Step 2: Write your prompt
 
@@ -87,8 +79,8 @@ Send the prompt.
 The LLM reads `AGENTS.md`, follows the link to `BUILDER.md`, and determines the project size:
 
 - **Quick** — less than 3 files, clear scope. Skips most documentation.
-- **Standard** — feature-sized. Produces Intent + Design + Verification Log.
-- **Full** — new project or major refactor. Everything from Standard plus ADRs and Devil's Advocate review.
+- **Standard** — feature-sized. Produces Intent + Verification Log. Design is optional — if the architecture is straightforward, key decisions go directly in the Intent.
+- **Full** — new project or major refactor. Everything from Standard plus a mandatory Design document with ADRs and Devil's Advocate review.
 
 For a new project like ours, it will choose **Standard** or **Full**. You will see it say something like: *"This is a Full-sized project. I'll start with the Intent document."*
 
@@ -120,9 +112,13 @@ Skills provide design guidance — aesthetic direction, API conventions, documen
 
 > **Tip:** You can install community skills from [skills.sh](https://skills.sh) (`npx skills add owner/skill-name`) or create your own in `.github/skills/your-skill/SKILL.md`.
 
-## Step 7: Review the Design
+## Step 7: Review the Design (Full) or Decisions (Standard)
 
-The LLM creates `docs/[project]-design.md`. This is one document that replaces a separate PRD, tech spec, and implementation plan. You will see:
+Before writing any code, the LLM runs a **pre-code checkpoint** — four questions that force it to pause: *Do my dependencies already solve this? What environment assumption could be wrong? Have I checked every pitfall? Is this still the right size?* This checkpoint is inlined into the process (step 4) so it cannot be skipped.
+
+Then comes the design phase, which varies by size:
+
+**Full projects** — the LLM creates `docs/[project]-design.md`, one document that replaces a separate PRD, tech spec, and implementation plan. It includes:
 
 - **Domain Profile Selection** — which profile was chosen and why (with scores)
 - **Skills Loaded** — which skills were loaded (or "none")
@@ -132,6 +128,8 @@ The LLM creates `docs/[project]-design.md`. This is one document that replaces a
 - **Risks** — what could go wrong, identified before coding
 - **Adversary Questions Applied** — answers to domain-specific traps from the profile
 - **Domain Pitfalls Applied** — how each known pitfall is addressed
+
+**Standard projects** — the Design is optional. If the architecture is straightforward, key decisions and the Adversary Questions / Domain Pitfalls tables are recorded directly in the Intent document's Decisions section. The invariant is that pitfalls and adversary questions are answered *somewhere* before code — not that a specific document exists.
 
 The Adversary Questions and Domain Pitfalls sections are where the domain profile earns its value. They force the LLM to confront known failure modes *before* writing a single line of code.
 

@@ -12,7 +12,7 @@ When someone copies `framework/` into their own repository and points `AGENTS.md
 
 ```
 .
-├── AGENTS.md                    # Example entry point (5 lines, points to BUILDER.md)
+├── AGENTS.md                    # Entry point — reading order: domain profile → BUILDER.md → GATEKEEPER.md
 ├── README.md                    # Explanation: what the framework is and why it exists
 ├── GUIDE.md                     # Tutorial: step-by-step first project walkthrough
 ├── LICENSE                      # MIT
@@ -44,8 +44,9 @@ When someone copies `framework/` into their own repository and points `AGENTS.md
 - **Gates** (0-4) are verification checkpoints with real command output — "assumed to pass" is never valid
 - **Four lenses**: User, Architecture, Adversary, Domain — thinking modes, not sequential phases
 - **Anti-Loop Rule**: produce the Intent document before continuing to investigate
-- **Pre-Implementation Checkpoint**: 4 questions before writing any code
-- **Debug Sprint**: bounded mode for dense debugging loops — verification log stays current, design doc reconciled when sprint ends
+- **Pre-code checkpoint** (step 4): 4 questions inlined into the process before any code
+- **Debug Sprint**: bounded mode for dense debugging loops — verification log stays current, design doc reconciled when sprint ends. **Integration Discovery variant** for undocumented dependencies.
+- **Context Pressure Protocol**: artifact degradation order when context is scarce (Progress > Profile > Intent > Design)
 - **Resume**: verification log Progress section enables continuing interrupted work
 
 ### The process (BUILDER.md)
@@ -55,10 +56,14 @@ The LLM determines project size (Quick / Standard / Full), then follows a struct
 1. **Intent** — Capture what and why before doing anything (`docs/[project]-intent.md`)
 2. **Domain profile** — Load accumulated stack knowledge, read every pitfall and adversary question
 3. **Skills** — Load relevant skills from `.github/skills/` and `.agents/skills/` as design guidance
-4. **Design** — Architecture, decisions, risks, pitfalls applied, adversary questions answered (`docs/[project]-design.md`)
-5. **Gated build** — Gates 0-4 with real command output recorded (Pre-Implementation Checkpoint before first line of code)
-6. **Self-review** — Adversary lens + domain checklist
-7. **Domain learning** — Update the profile with new discoveries
+4. **Pre-code checkpoint** — 4 questions: deps solve this? wrong assumption? pitfalls checked? right size?
+5. **Design** — Architecture, decisions, risks, pitfalls applied, adversary questions answered. **Optional for Standard; mandatory for Full** with ADRs.
+6. **Gated build** — Gates 0→1→2 per feature phase
+7. **Tests + verification** — Gates 3→4 with real command output recorded
+8. **Self-review** — Adversary lens + domain checklist
+9. **Domain learning** — Update the profile with new discoveries
+
+In single-agent environments (most current tooling), the LLM fulfills both Builder and GateKeeper roles with the same mechanical discipline.
 
 ### Domain profiles (the differentiator)
 
@@ -75,7 +80,7 @@ Gates are mandatory checkpoints with real command output. "Assumed to pass" is n
 ### Artifacts
 
 - **Intent** — Scope anchor. Given/when/then behaviors, MUST/MUST NOT constraints, IN/OUT scope.
-- **Design** — Single document replacing PRD + tech spec + implementation plan. Includes Adversary Questions Applied and Domain Pitfalls Applied as separate mandatory sections.
+- **Design** — Single document replacing PRD + tech spec + implementation plan. **Required for Full; optional for Standard.** Includes Adversary Questions Applied and Domain Pitfalls Applied as separate mandatory sections (in Design or Intent, depending on size).
 - **Verification Log** — Gate evidence + Progress section for resuming interrupted work.
 
 ### Anti-Loop Rule
@@ -88,13 +93,14 @@ Each verification log has a Progress table at the top. When a session is interru
 
 ## Documentation follows Diátaxis
 
-| Document | Type | Serves |
-|----------|------|--------|
-| `README.md` | Explanation | Understanding — what and why |
-| `GUIDE.md` | Tutorial | Learning — step-by-step first project |
-| `framework/README.md` | Reference | Information — specs, contracts, definitions |
-| `BUILDER.md` | Reference | Information — the process contract (for LLMs) |
-| `GATEKEEPER.md` | Reference | Information — the verification contract (for LLMs) |
+| Document | Type | Audience | Serves |
+|----------|------|----------|--------|
+| `README.md` | Explanation | Human | Understanding — what and why |
+| `GUIDE.md` | Tutorial | Human | Learning — step-by-step first project |
+| `framework/README.md` | Reference | Human | Information — specs, contracts, definitions |
+| `catalog/README.md` | How-to guide | Human | How to use and contribute domain profiles |
+| `BUILDER.md` | Agent contract | LLM | Process instructions the LLM follows |
+| `GATEKEEPER.md` | Agent contract | LLM | Verification instructions the LLM follows |
 
 ## When modifying the framework
 
@@ -111,5 +117,5 @@ Each verification log has a Progress table at the top. When a session is interru
 - Standalone/base profiles use the structure in `framework/templates/DOMAIN_PROFILE-template.md`. Profile links use `framework/domains/_template.md`. Do not deviate.
 - Verification logs are per-project: `docs/[project]-verification.md`, not a shared file.
 - Project code goes in its own directory, never at the repo root.
-- The AGENTS.md entry point is intentionally minimal (5 lines). Process logic lives in BUILDER.md.
+- The AGENTS.md entry point defines a 3-step reading order (domain profile → BUILDER.md → GATEKEEPER.md). Process logic lives in BUILDER.md.
 - Skills are guidance, not process. They live in `.github/skills/` (repo-level) or `.agents/skills/` (agent-level/external). Skills cannot override gates, skip artifacts, or replace domain profile correctness. Technical learnings go in domain profiles; process learnings go in skills; project-specific learnings go in `docs/`.
