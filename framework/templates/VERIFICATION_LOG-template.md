@@ -157,7 +157,7 @@ This log captures the actual output of every verification gate. It is the source
 
 ---
 
-## Self-Review (Full projects only)
+## Self-Review
 
 ### Domain Checklist Results
 [Run every Automated Check from the domain profile. Paste command + result.]
@@ -166,12 +166,19 @@ This log captures the actual output of every verification gate. It is the source
 |-------|---------|--------|-------|
 | [e.g., No attr binding] | `[command]` | [what was found] | [YES/NO] |
 
-### Devil's Advocate
+### Review Checklist
+[Verify every Common Pitfall against the codebase. Record result.]
+
+| Pitfall | Applies? | Verified? |
+|---------|----------|-----------|
+| [Profile pitfall] | [Yes/No] | [YES — how / NO — why not] |
+
+### Devil's Advocate (Full projects only)
 1. **What happens when:** [scenario 1], [scenario 2], [scenario 3]
 2. **The weakest link is:** [identification and reasoning]
 3. **If I had to break this, I would:** [attack vector]
 
-### Findings
+### Findings (Full projects only)
 [List genuine vulnerabilities or logic flaws. If none found, document the critical attack vectors investigated and why they are not exploitable. Do not fabricate findings to meet a quota.]
 
 | # | Severity | Finding / Investigation | Impact / Conclusion |

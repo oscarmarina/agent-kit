@@ -178,6 +178,10 @@ The framework produces three documents per project:
 
 These aren't bureaucracy. They exist because LLMs lose context. The Intent prevents scope creep. The Design prevents the LLM from re-deciding things it already decided. The Verification Log prevents it from re-running gates that already passed. Together, they make the process resilient to the reality of working with LLMs: limited context windows, interrupted sessions, and confident hallucinations.
 
+## Execution models
+
+The framework supports **single-agent** (one LLM, both roles) and **dual-agent** (separate Builder and GateKeeper). In orchestrated environments with sub-agents, the orchestrator owns all artifacts and process state; Builder and GateKeeper become delegated roles. GateKeeper maps cleanly to a dedicated sub-agent (defined inputs, structured output, no code edits). Builder works better as a role the orchestrator executes or delegates per phase, not as a permanent sub-agent.
+
 ## LLM compatibility
 
 The framework is LLM-agnostic. Any model that can read markdown and follow instructions can use it.

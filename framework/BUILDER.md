@@ -211,6 +211,8 @@ The Domain Profile is a shared knowledge structure, but the Builder and the Gate
 - **Verification Commands:** Reusable command variants required by the stack or target operating environment. One-off runner workarounds stay in the verification log, not in the profile.
 - **Automated Checks:** New bash detection patterns to strictly enforce.
 
+**When the selected profile is a link** (has `extends`): stack-wide discoveries (pitfalls, integration rules, verification commands that apply to any project on this stack) go in the **base profile** in `catalog/`. Project-specific discoveries (local overrides, environment quirks, decisions unique to this repo) go in the **link file** in `framework/domains/`. If unsure, default to the link — it can be promoted to the base later.
+
 **The domain profile is a living document. Every bug fix that reveals a gap is a learning opportunity — capture it immediately or it's lost.**
 
 ## Artifacts
