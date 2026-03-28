@@ -116,7 +116,7 @@ Four questions inlined into Standard step 4 (and applicable to all sizes):
 1. **Do my dependencies already solve this?** Read the public API (`.d.ts`, package docs, `npm view`). If a library provides the functionality, use it.
 2. **What environment assumption could be wrong?** Identify at least one assumption about runtime, host, or deployment target.
 3. **Have I checked the domain profile pitfalls?** Scan every Common Pitfall and Adversary Question against the plan.
-4. **Is this still the right size?** Re-evaluate Quick vs Standard vs Full.
+4. **Is this still the right size?** Check escalation triggers (>3 files, public API changes, new dependencies, scope expansion).
 
 Inlined into the process flow so it cannot be skipped by forgetting to consult a separate section.
 

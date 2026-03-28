@@ -1,5 +1,7 @@
 # Agent Instructions
 
+**Activation:** Before writing any code, determine project size (Quick / Standard / Full) and state it explicitly. This is the activation signal — if you skip it, the framework is not active.
+
 ## Reading order
 
 1. **Check `framework/domains/` for an existing domain profile** matching the task's stack. If exactly one profile matches by filename or obvious keyword overlap, read it first — its pitfalls, adversary questions, and verification commands are the highest-value-per-token knowledge available. If multiple candidates exist, defer selection to `BUILDER.md` step 2 (which defines the full scoring algorithm). If none exists, continue to step 2.

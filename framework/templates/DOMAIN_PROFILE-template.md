@@ -10,6 +10,7 @@
 **Match Keywords:** [comma-separated terms used for routing; e.g., `angular, lit, web components, vite`]
 **Use When:** [one sentence describing when this profile SHOULD be selected]
 **Do Not Use When:** [one sentence describing when this profile MUST NOT be selected]
+**Last Verified:** [date when this profile was last checked against the actual codebase; e.g., `2026-03-28`]
 
 ## Terminology Mapping
 

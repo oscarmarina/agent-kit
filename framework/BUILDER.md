@@ -61,7 +61,7 @@ Apply the domain profile's accumulated knowledge:
 ### Quick (< 3 files, clear intent)
 1. Understand intent → Load matching skill if one clearly exists (do not search if trivial) → Code → Verify (Gate 2 minimum) → If fix reveals a missing pitfall or wrong assumption, update domain profile → Done
 
-**Escalation rule:** If a Quick task touches more than 3 files or uncovers bugs beyond the original scope, stop and escalate to Standard. Capture a retroactive INTENT before continuing. The cost of pausing is low; the cost of an unscoped debugging spiral is high.
+**Escalation rule:** See the top-level **Escalation Rule (Quick → Standard)** section. If any trigger fires, stop and escalate immediately.
 
 ### Standard (feature-sized)
 1. Capture Intent (extract or create CIR from prompt → `docs/[project]-intent.md`)
@@ -71,7 +71,7 @@ Apply the domain profile's accumulated knowledge:
    - Do my dependencies already solve this? (Read public APIs first)
    - What environment assumption could be wrong?
    - Have I checked every domain profile pitfall against my plan?
-   - Is this still the right size (Quick/Standard/Full)?
+   - Is this still the right size? Check the escalation triggers (>3 files, public API changes, new dependencies, scope expansion). If any fires, escalate before writing more code.
 5. Design (optional for Standard — **required for Full**). If the architecture has non-obvious decisions, write `docs/[project]-design.md` with all lenses. If the architecture is straightforward, record key decisions and the Adversary Questions Applied / Domain Pitfalls Applied tables directly in the Intent's Decisions section. The point is that pitfalls and adversary questions are answered *somewhere* before code — not that a specific document exists.
 6. Gated build (Gate 0 → Gate 1 → Gate 2 per feature phase)
 7. Tests + verification (Gate 3 → Gate 4)
@@ -215,6 +215,19 @@ The Domain Profile is a shared knowledge structure, but the Builder and the Gate
 
 **The domain profile is a living document. Every bug fix that reveals a gap is a learning opportunity — capture it immediately or it's lost.**
 
+### Last Verified Timestamp
+
+Every domain profile has a **Last Verified** field in its Selection Metadata. This records the date when the profile was last checked against the actual codebase.
+
+**When to update it:**
+- After any session that modifies the domain profile (pitfalls added/removed, integration rules changed, decision history updated)
+- After running a full audit (Self-Review step 2: "Run every Automated Check from the domain profile")
+
+**When to act on it:**
+- When loading a profile, check the **Last Verified** date. If it is older than the most recent verification log entry or the last significant code change, the profile may be stale.
+- Before trusting a pitfall, integration rule, or automated check that references specific files, functions, or paths — verify that the referenced artifact still exists. A profile entry that names a deleted function is worse than no entry.
+- If the profile is stale (Last Verified > 30 days or > 2 major changes ago), run the Automated Checks before relying on them. Update or remove entries that no longer apply.
+
 ## Artifacts
 
 ### Change Intent Record (`docs/[project]-intent.md`)
@@ -269,17 +282,6 @@ After implementation, shift to Adversary Lens:
    - Devil's Advocate section (3 uncovered scenarios, weakest link, attack vector)
    - Findings section: list any genuine vulnerabilities or logic flaws found. If none are found, document the most critical attack vectors you investigated and explain why they are not exploitable in this design. Do not fabricate findings to meet a quota — honest "checked X, found nothing" is more valuable than invented issues.
 
-## Pre-Implementation Checkpoint
-
-The four checkpoint questions are embedded in Standard step 4 and apply to all sizes. They are repeated here for reference:
-
-1. **Do my dependencies already solve this?** Read the public API of every library you'll use. If it provides the functionality, use it — don't reimplement.
-2. **What environment assumption could be wrong?** Identify at least one assumption about the runtime, host, or deployment target that could differ from your expectation.
-3. **Have I checked the domain profile pitfalls?** If a profile is loaded, scan every Common Pitfall and Adversary Question against your plan.
-4. **Is this still the right size?** Re-evaluate Quick vs Standard vs Full now that you understand the scope.
-
-This checkpoint is not a document to produce. It is a pause before acting — inlined into the process so it cannot be skipped by forgetting to consult a separate section.
-
 ## Context Pressure Protocol
 
 LLM sessions have finite context windows. Long projects will hit compaction (automatic summarization of earlier messages) or session interruption. Artifacts exist to survive this — but only if they are prioritized correctly.
@@ -324,6 +326,21 @@ When continuing a task from a previous session or after context loss:
 
 If no verification log exists, look for intent and design docs in `docs/` to understand what was planned. If nothing exists, start fresh.
 
+## Escalation Rule (Quick → Standard)
+
+**This rule is the most commonly violated in practice. Read it before every Quick task.**
+
+If **any** of these triggers fire during a Quick task, **stop coding immediately** and escalate to Standard. Capture a retroactive Intent before continuing:
+
+1. **Touches more than 3 files**
+2. **Changes public API** (new attributes, methods, events, or exports)
+3. **Uncovers bugs beyond the original scope**
+4. **Adds or removes dependencies**
+
+Re-check these triggers after each file edit — not just at the start. A task that begins as Quick can cross the threshold mid-implementation. The cost of pausing to write an Intent is one minute; the cost of an unscoped change with no artifact is hours of debugging after context loss.
+
+The Pre-code checkpoint (Standard step 4) includes a size re-check for the same reason: `Is this still the right size?`
+
 ## Rules
 
 - Follow the Intent strictly. Don't add features not in scope.
@@ -336,6 +353,7 @@ If no verification log exists, look for intent and design docs in `docs/` to und
 - Don't over-engineer. The right amount of complexity is the minimum needed for the current task.
 - **Project code goes in its own directory** — not at the repository root. Name the directory after the project (e.g., `mcp-task-widget/`). Config files (`package.json`, `tsconfig.json`, `vite.config.ts`, etc.), source code, and build output belong inside this directory. The repo root is reserved for `AGENTS.md`, `framework/`, and `docs/`.
 - **Every bug fix that reveals a reusable gap must update the domain profile.** If you fix a problem caused by a missing pitfall, incorrect integration rule, or wrong assumption that would apply to future projects on this stack — add it to the domain profile in the same commit. Fixes that are purely project-specific (e.g., a CSS tweak for a particular third-party component version) belong in the verification log, not the profile. The test: "would another project on this stack hit the same problem?" If yes → profile. If no → verification log.
+- **Verification log staleness:** When resuming work or running an audit, re-execute Gate 3 and compare the output against the last logged Gate 3 entry. If test count or coverage differs by more than 10%, update the log before proceeding with new work.
 - **Every confirmed runtime lesson must update either the domain profile or the verification log immediately.** If the lesson is stack-reusable, it belongs in the profile. If it is environment-specific, it still belongs in the verification log.
 - **Skills are guidance, not process.** A skill can inform how you design and implement (aesthetic direction, API conventions, documentation style) but cannot override gates, skip artifacts, or replace domain profile pitfalls. If a skill contradicts the domain profile, the profile wins for technical correctness; the skill wins for domain-specific quality.
 - **Framework artifacts define the output structure.** If the user's prompt includes its own output format (e.g., "give me architecture overview, then full code, then decisions"), capture those expectations as Constraints in the Intent but produce the framework's artifacts (Intent, Design, Verification Log). The user's requests are addressed — architecture goes in the Design doc's Architecture section, decisions go in Decisions, setup notes go in Integration Rules. What changes is the vehicle, not the content.
