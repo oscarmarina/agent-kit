@@ -61,7 +61,16 @@ Apply the domain profile's accumulated knowledge:
 ### Quick (< 3 files, clear intent)
 1. Understand intent → Load matching skill if one clearly exists (do not search if trivial) → Code → Verify (Gate 2 minimum) → If fix reveals a missing pitfall or wrong assumption, update domain profile → Done
 
-**Escalation rule:** See the top-level **Escalation Rule (Quick → Standard)** section. If any trigger fires, stop and escalate immediately.
+**Escalation rule — the most commonly violated in practice. Re-check after each file edit:**
+
+If **any** of these triggers fire during a Quick task, **stop coding immediately** and escalate to Standard. Capture a retroactive Intent before continuing:
+
+1. **Touches more than 3 files**
+2. **Changes public API** (new attributes, methods, events, or exports)
+3. **Uncovers bugs beyond the original scope**
+4. **Adds or removes dependencies**
+
+A task that begins as Quick can cross the threshold mid-implementation. The cost of pausing to write an Intent is one minute; the cost of an unscoped change with no artifact is hours of debugging after context loss.
 
 ### Standard (feature-sized)
 1. Capture Intent (extract or create CIR from prompt → `docs/[project]-intent.md`)
@@ -325,21 +334,6 @@ When continuing a task from a previous session or after context loss:
 5. Continue from the next incomplete step — do not redo completed gates
 
 If no verification log exists, look for intent and design docs in `docs/` to understand what was planned. If nothing exists, start fresh.
-
-## Escalation Rule (Quick → Standard)
-
-**This rule is the most commonly violated in practice. Read it before every Quick task.**
-
-If **any** of these triggers fire during a Quick task, **stop coding immediately** and escalate to Standard. Capture a retroactive Intent before continuing:
-
-1. **Touches more than 3 files**
-2. **Changes public API** (new attributes, methods, events, or exports)
-3. **Uncovers bugs beyond the original scope**
-4. **Adds or removes dependencies**
-
-Re-check these triggers after each file edit — not just at the start. A task that begins as Quick can cross the threshold mid-implementation. The cost of pausing to write an Intent is one minute; the cost of an unscoped change with no artifact is hours of debugging after context loss.
-
-The Pre-code checkpoint (Standard step 4) includes a size re-check for the same reason: `Is this still the right size?`
 
 ## Rules
 

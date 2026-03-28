@@ -101,6 +101,8 @@ Identified BEFORE implementation. Each risk has impact assessment and mitigation
 
 ## Domain Pitfalls Applied
 
+> **CRITICAL:** Do not omit this section. Every pitfall from the domain profile must be evaluated against this design — even if the answer is "does not apply." Silent omission is the most common audit failure.
+
 [For each relevant pitfall from the domain profile: which ones apply and how this design addresses them.]
 
 | Pitfall | Applies? | How Addressed |

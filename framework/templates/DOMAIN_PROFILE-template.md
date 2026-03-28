@@ -11,6 +11,7 @@
 **Use When:** [one sentence describing when this profile SHOULD be selected]
 **Do Not Use When:** [one sentence describing when this profile MUST NOT be selected]
 **Last Verified:** [date when this profile was last checked against the actual codebase; e.g., `2026-03-28`]
+<!-- Update this date whenever you modify this profile or re-verify pitfalls/checks against the codebase -->
 
 ## Terminology Mapping
 
