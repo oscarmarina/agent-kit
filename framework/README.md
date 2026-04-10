@@ -64,7 +64,7 @@ Project code goes in its own directory — never at the repo root.
 |------|----------|--------------------|
 | Quick | < 3 files, clear intent | Code + Gate 2 minimum |
 | Standard | Feature-sized | Intent + Code + Verification Log (Design optional — see Standard step 5) |
-| Full | New project / major rearchitecture | Intent + Design (mandatory, with ADRs) + Code + Verification Log + Devil's Advocate self-review |
+| Full | New project / major rearchitecture | Research Summary + Intent + Design (mandatory, with ADRs) + Code + Verification Log + Devil's Advocate self-review |
 
 All sizes load relevant skills when they exist (see Skills section below). For Full, skill loading is mandatory — document that none were found if that's the case.
 
@@ -182,6 +182,26 @@ Mechanical proof. Template: `templates/VERIFICATION_LOG-template.md`
 | Domain Profile Updates | What changed in the profile and why |
 
 One log per project. Completed logs remain as historical evidence.
+
+## Knowledge authority hierarchy
+
+When multiple knowledge sources apply to the same decision, this is the conflict resolution order — the higher authority always wins:
+
+| Priority | Source | Scope | Example |
+|----------|--------|-------|---------|
+| 1 (highest) | Local profile overrides (`framework/domains/` link file) | This project only | Environment-specific gate substitution |
+| 2 | Base catalog profile (`catalog/`) | All projects on this stack | Verified pitfalls, integration rules |
+| 3 | Skills (`.github/skills/`, `.agents/skills/`) | Domain quality guidance | API conventions, documentation style |
+| 4 (lowest) | Builder defaults in `BUILDER.md` | Generic fallback | Generic adversary questions |
+
+**Applying the hierarchy:**
+
+- If a local override contradicts the catalog base → **local override wins** (project-specific reality trumps general knowledge)
+- If the catalog profile contradicts a skill → **profile wins for technical correctness** (a verified pitfall overrides style guidance)
+- If a skill contradicts Builder defaults → **skill wins** (domain-specific quality beats generic process)
+- If sources at the same level conflict (e.g., two skills loaded simultaneously) → the Builder notes the conflict in the Intent's Decisions table and asks the human if it affects a MUST/MUST NOT constraint
+
+This hierarchy eliminates ambiguity when following contradictory instructions. The Builder never silently chooses — either the hierarchy resolves it, or the human decides.
 
 ## Domain profile selection contract
 

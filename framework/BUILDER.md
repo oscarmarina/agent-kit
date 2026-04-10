@@ -47,6 +47,8 @@ If the domain profile has an **Adversary Questions** section, answer every quest
 
 Apply this lens DURING design (before code), not only after.
 
+**Research-First rule:** For any change that touches more than one module, modifies a public API, or involves architecture you haven't read recently — investigate the existing code before proposing a solution. Produce a brief **Research Summary** (what you found, what patterns are already in use, what constraints the existing code imposes) and record it in the Design document's Architecture section or in the Intent's Decisions table. A generic solution that ignores the existing architecture is a Product Failure waiting to happen. "I assumed it worked like X" is not a root cause — it is a skipped step.
+
 ### Domain Lens
 Apply the domain profile's accumulated knowledge:
 - Check every Common Pitfall against the current design
@@ -89,6 +91,7 @@ A task that begins as Quick can cross the threshold mid-implementation. The cost
 
 ### Full (new project or major rearchitecture)
 Same as Standard, but:
+- **Research Summary is mandatory before Design** — before writing `docs/[project]-design.md`, read the existing codebase to understand the current architecture, patterns, and constraints. Record a Research Summary in the Design document's Architecture section: what modules exist, what patterns they use, what cannot change without breaking downstream. If this is a greenfield project with no existing code, write "Greenfield — no prior architecture to survey." This step cannot be skipped or merged into the Design — it is evidence that the design is grounded in reality, not assumption.
 - **Design document is mandatory** → `docs/[project]-design.md` with ADRs for each major decision. The design MUST include both "Adversary Questions Applied" and "Domain Pitfalls Applied" as separate sections — checking pitfalls does not replace answering adversary questions
 - Build is phased with Gate 2 after each phase
 - Skill loading (step 3) is mandatory — even if no skills match, document that none were found
@@ -290,6 +293,19 @@ After implementation, shift to Adversary Lens:
 5. **For Full projects only:** add to the verification log:
    - Devil's Advocate section (3 uncovered scenarios, weakest link, attack vector)
    - Findings section: list any genuine vulnerabilities or logic flaws found. If none are found, document the most critical attack vectors you investigated and explain why they are not exploitable in this design. Do not fabricate findings to meet a quota — honest "checked X, found nothing" is more valuable than invented issues.
+6. **Promotion check (all sizes):** Scan the active domain profile for pitfalls that meet either promotion criterion:
+   - `occurrence_count >= 3` — seen enough times across projects to be a confirmed stack-level trap
+   - `severity: critical` — first occurrence is sufficient evidence for catalog candidacy
+
+   For each candidate, answer the portability test:
+   - Is this failure stack-wide, not tied to this project's specific architecture or data?
+   - Is the Detection command generic (no hardcoded project paths or project-specific filenames)?
+   - Is the Correct approach general enough to apply to any future project on this stack?
+
+   If all three are yes → move the pitfall to the base profile in `catalog/` and leave a reference note in the local profile. Record the promotion in the Verification Log's Domain Profile Updates section.
+   If any is no → keep in the local profile. Add a one-line note explaining why it did not promote (e.g., "Detection command references project-specific path"). This closes the audit trail without requiring action.
+
+   **For Full projects, this step is mandatory** — write "Promotion check: N candidates found, M promoted, K deferred (reason)" even if the result is zero.
 
 ## Context Pressure Protocol
 
@@ -350,5 +366,6 @@ If no verification log exists, look for intent and design docs in `docs/` to und
 - **Verification log staleness:** When resuming work or running an audit, re-execute Gate 3 and compare the output against the last logged Gate 3 entry. If test count or coverage differs by more than 10%, update the log before proceeding with new work.
 - **Every confirmed runtime lesson must update either the domain profile or the verification log immediately.** If the lesson is stack-reusable, it belongs in the profile. If it is environment-specific, it still belongs in the verification log.
 - **Skills are guidance, not process.** A skill can inform how you design and implement (aesthetic direction, API conventions, documentation style) but cannot override gates, skip artifacts, or replace domain profile pitfalls. If a skill contradicts the domain profile, the profile wins for technical correctness; the skill wins for domain-specific quality.
+- **Knowledge authority hierarchy — conflict resolution order (highest to lowest):** (1) Local profile overrides in `framework/domains/` link file — project-specific reality; (2) Base catalog profile in `catalog/` — verified stack knowledge; (3) Skills — domain quality guidance; (4) Builder defaults in this file — generic fallback. When two sources at different levels contradict each other, the higher authority wins silently. When two sources at the **same** level contradict each other (e.g., two skills), note the conflict in the Intent's Decisions table and ask the human if it affects a MUST/MUST NOT constraint. Never silently pick one without documenting the choice.
 - **Framework artifacts define the output structure.** If the user's prompt includes its own output format (e.g., "give me architecture overview, then full code, then decisions"), capture those expectations as Constraints in the Intent but produce the framework's artifacts (Intent, Design, Verification Log). The user's requests are addressed — architecture goes in the Design doc's Architecture section, decisions go in Decisions, setup notes go in Integration Rules. What changes is the vehicle, not the content.
 - **If the human changes requirements mid-project, halt implementation.** Update the Intent document (Goal, Behavior, Constraints, Scope as needed), update the Verification Log Progress section to reflect the scope change, and only then resume coding. Do not silently drift scope — downstream gates verify against the Intent, and an outdated Intent causes false failures or missed regressions.

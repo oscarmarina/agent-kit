@@ -29,6 +29,46 @@ catalog_version: 1.0.0
 
 The Builder loads the base from `catalog/` and merges your local additions on top. See `framework/domains/_template.md` for the full template and `framework/domains/README.md` for merge rules.
 
+## Promotion Protocol
+
+Pitfalls start their life in a project's local profile link (`framework/domains/`). They graduate to the catalog base profile when they demonstrate they are stack-wide traps — not project-specific quirks. This is how the catalog grows automatically from real usage.
+
+### Promotion triggers
+
+A pitfall becomes a **catalog candidate** when it meets either criterion:
+
+| Criterion | Threshold | Rationale |
+|-----------|-----------|-----------|
+| `occurrence_count` | `>= 3` across different projects | Three independent hits confirm the trap is stack-level, not a one-off |
+| `severity: critical` | First occurrence | Data loss, silent wrong behavior, or security failures warrant immediate promotion candidacy |
+
+The GateKeeper flags `critical` pitfalls with `<!-- catalog candidate: critical severity -->` on detection. The Builder evaluates all candidates during the Self-Review Promotion Check (step 6 of `framework/BUILDER.md`).
+
+### Portability test (three questions)
+
+Before promoting, answer all three:
+
+1. **Stack-wide?** Would any project on this stack hit this failure, regardless of project-specific architecture or data shapes?
+2. **Generic Detection?** Is the Detection command free of hardcoded project paths, project-specific filenames, or environment-specific assumptions? (e.g., `rg "pattern" src/` is generic; `rg "pattern" src/my-widget/` is not)
+3. **General Correct approach?** Does the fix apply to any future project on this stack, not just this project's specific implementation?
+
+If all three are yes → promote. If any is no → keep local, add a one-line note explaining why.
+
+### How to promote
+
+1. Copy the pitfall entry (including `Severity`, `Occurrence count`, `What goes wrong`, `Correct approach`, `Detection`) from the local profile link into the base profile in `catalog/[profile].md`.
+2. In the local profile link, replace the full entry with a short reference note:
+   ```
+   ### Pitfall N: [Name] — promoted to catalog base
+   <!-- Promoted [date]. See catalog/[profile].md -->
+   ```
+3. Record the promotion in the Verification Log's Domain Profile Updates section: `Promoted pitfall "[Name]" to catalog/[profile].md — occurrence_count: N, severity: X`.
+4. Update the Available Profiles table at the top of this file to reflect the new pitfall count.
+
+### Example
+
+A project using the `apps-sdk-mcp-lit-vite` stack encounters a new pitfall with `severity: critical`. The GateKeeper adds it to the local profile with `<!-- catalog candidate: critical severity -->`. During Self-Review, the Builder runs the portability test: it is stack-wide, the Detection command uses only generic `src/` paths, and the fix applies to any MCP widget project. All three pass → the pitfall moves to `catalog/apps-sdk-mcp-lit-vite.md` and the local profile gets a reference note. The Verification Log records the promotion.
+
 ## Contributing a profile
 
 Domain profiles grow from real project experience. If you've built projects with a stack that isn't represented here, consider contributing your profile.

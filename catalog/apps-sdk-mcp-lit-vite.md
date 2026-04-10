@@ -49,59 +49,81 @@
 ## Common Pitfalls
 
 ### Pitfall 1: Custom postMessage bridge instead of the official SDK
+- **Severity:** critical
+- **Occurrence count:** 1
 - **What goes wrong:** Building a custom JSON-RPC bridge with `document.referrer` for origin detection and strict `event.origin` validation. ChatGPT's sandbox iframe (`*.web-sandbox.oaiusercontent.com`) does **not** set `document.referrer`, so the custom bridge fails to initialize and the widget stays blank. The official SDK uses `postMessage("*")` and validates only `event.source`, which works in all host environments.
 - **Correct approach:** Use `App` + `PostMessageTransport` from `@modelcontextprotocol/ext-apps`. The SDK handles the initialize handshake, tool calls (`app.callServerTool`), notifications (`app.ontoolresult`), teardown, and auto-resize. Never reimplement the bridge manually.
 - **Detection:** `rg "document\.referrer" src/widget` — should have **no** matches. `rg "import.*@modelcontextprotocol/ext-apps" src/widget` — should find the SDK import.
 
 ### Pitfall 2: Mixing UI state into authoritative tool payloads
+- **Severity:** major
+- **Occurrence count:** 1
 - **What goes wrong:** Sort state, selected row state, or optimistic flags leak into `structuredContent`, making the model consume transient UI details as business truth.
 - **Correct approach:** Return only authoritative task data in `structuredContent`; keep view state in local state and `window.openai.widgetState`.
 - **Detection:** Search tool results for UI-only fields like `selected`, `draft`, `expanded`, or `filter`.
 
 ### Pitfall 3: Shipping Vite assets with absolute paths
+- **Severity:** critical
+- **Occurrence count:** 1
 - **What goes wrong:** The built widget references `/assets/...`, which breaks when the widget is served as an MCP resource instead of a root-hosted site.
 - **Correct approach:** Set Vite `base: './'` and use stable asset names (`entryFileNames: 'assets/index.js'`) for deterministic builds. Serve index plus asset files from matching resource or HTTP paths.
 - **Detection:** Inspect built HTML for `src="/` or `href="/` after `npm run build`.
 
 ### Pitfall 4: Inlining JS/CSS into MCP resource HTML
+- **Severity:** critical
+- **Occurrence count:** 1
 - **What goes wrong:** The widget HTML resource includes all JavaScript inline via `<script type="module">` tags. ChatGPT's iframe CSP blocks inline script execution, resulting in a blank/black screen.
 - **Correct approach:** Generate the HTML resource with external `<script>` references pointing to the server's `/widget/` endpoint (e.g., `src="${publicOrigin}/widget/assets/index.js"`). Include the server domain in `_meta.ui.csp.connectDomains` and `resourceDomains` so CSP allows loading.
 - **Detection:** Check that resource HTML contains `src="http` (external reference), not inline `<script>` blocks with bundled code.
 
 ### Pitfall 5: Empty CSP `connectDomains` in widget metadata
+- **Severity:** critical
+- **Occurrence count:** 1
 - **What goes wrong:** The MCP resource `_meta.ui.csp.connectDomains` is empty (`[]`), so the ChatGPT iframe cannot load scripts or make requests to the MCP server.
 - **Correct approach:** Include the server's public origin in both `connectDomains` and `resourceDomains`. For ChatGPT compatibility, also set `openai/widgetCSP.connect_domains`.
 - **Detection:** `rg "connectDomains" src/server` — should show arrays containing the server domain, not empty arrays.
 
 ### Pitfall 6: Missing body background in widget HTML
+- **Severity:** minor
+- **Occurrence count:** 1
 - **What goes wrong:** The widget HTML has no `<body>` or root-level background style. If the Lit component fails to initialize (bridge error, JS load failure), the iframe shows a transparent or black background.
 - **Correct approach:** Always include a `<style>` in the widget HTML with `body { margin: 0; padding: 0; background: <fallback-color>; }`.
 - **Detection:** Check built `index.html` and resource HTML for body style rules.
 
+### Pitfall 7: Using jsdom for widget tests
+- **Severity:** major
+- **Occurrence count:** 1
+- **What goes wrong:** Widget tests use jsdom which lacks real browser APIs (Shadow DOM, Custom Elements, postMessage origin). Tests pass but miss real rendering and security issues.
+- **Correct approach:** Use Vitest browser mode with Playwright (`@vitest/browser-playwright`). Configure a workspace with `server` (node environment) and `widget` (browser environment) projects.
+- **Detection:** Check `vitest.config.ts` for `browser.enabled: true` and `provider: playwright()`. No `environment: 'jsdom'` references.
+
 ### Pitfall 8: Stateful `StreamableHTTPServerTransport` with per-request server instances
+- **Severity:** critical
+- **Occurrence count:** 1
 - **What goes wrong:** The transport generates session IDs by default (stateful mode). Since the server creates a new transport per HTTP request, the session ID from `initialize` is lost on the next request. The MCP inspector (and any stateless HTTP client) gets "Failed to fetch" / connection errors.
 - **Correct approach:** Set `sessionIdGenerator: undefined` in the `StreamableHTTPServerTransport` options to disable sessions (stateless mode) when creating a new server+transport per request.
 - **Detection:** `rg "sessionIdGenerator" src/server` — should find `sessionIdGenerator: undefined`. If missing, the transport defaults to stateful mode.
 
 ### Pitfall 9: Wrong `start` script path after TypeScript server build
+- **Severity:** major
+- **Occurrence count:** 1
 - **What goes wrong:** `tsconfig.server.json` uses `rootDir: "src"` so `src/server/index.ts` compiles to `dist/server/server/index.js`, but `package.json` has `"start": "node dist/server/index.js"` — missing the extra `server/` segment.
 - **Correct approach:** Match the `start` script path to the actual build output. With `rootDir: "src"` and `outDir: "dist/server"`, the entry point is `dist/server/server/index.js`.
 - **Detection:** Run `npm start` — if it fails with `MODULE_NOT_FOUND`, the path is wrong. Check `ls dist/server/` to verify the actual structure.
 
 ### Pitfall 10: Missing CORS headers on widget asset endpoints
+- **Severity:** critical
+- **Occurrence count:** 1
 - **What goes wrong:** `<script type="module">` always uses CORS mode for cross-origin requests. ChatGPT loads widget HTML inside an iframe on `*.web-sandbox.oaiusercontent.com`, which fetches scripts from the MCP server origin (e.g., ngrok). Without `Access-Control-Allow-Origin` on the `/widget/*` endpoint, the browser blocks the script load silently. The custom element never registers and the `<task-board-app>` tag remains empty (no shadow DOM).
 - **Correct approach:** Add `"access-control-allow-origin": "*"` to all `/widget/*` static asset responses. This is required even though the MCP `/mcp` endpoint already has CORS headers — widget assets are a separate route.
 - **Detection:** `rg "access-control-allow-origin" src/server` — should match in both the MCP handler and the widget asset handler. If only the MCP handler has CORS, widget scripts will fail to load cross-origin.
 
 ### Pitfall 11: Resource HTML references a CSS asset that Vite does not emit
+- **Severity:** major
+- **Occurrence count:** 1
 - **What goes wrong:** The resource HTML includes `<link rel="stylesheet" href="${publicOrigin}/widget/assets/index.css">`, but Vite does not emit a separate CSS file when all styles live inside Lit's `static styles` (or when `cssCodeSplit: true` produces no extractable CSS). The `<link>` triggers a 404, which may block rendering or cause a flash of unstyled content depending on the browser's error handling.
 - **Correct approach:** Only reference CSS assets in the resource HTML if the Vite build actually emits them. After `npm run build`, check `dist/widget/assets/` for `.css` files. If Lit `static styles` handles all styling, omit the `<link>` tag entirely. If a CSS file is needed (e.g., global resets), configure Vite to emit it with a stable name (`assetFileNames: 'assets/[name].[ext]'`).
 - **Detection:** After `npm run build`, run `ls dist/widget/assets/*.css 2>/dev/null || echo "NO CSS EMITTED"`. If no CSS file exists but the resource HTML references one, the widget will 404 on that asset.
-
-### Pitfall 7: Using jsdom for widget tests
-- **What goes wrong:** Widget tests use jsdom which lacks real browser APIs (Shadow DOM, Custom Elements, postMessage origin). Tests pass but miss real rendering and security issues.
-- **Correct approach:** Use Vitest browser mode with Playwright (`@vitest/browser-playwright`). Configure a workspace with `server` (node environment) and `widget` (browser environment) projects.
-- **Detection:** Check `vitest.config.ts` for `browser.enabled: true` and `provider: playwright()`. No `environment: 'jsdom'` references.
 
 ## Adversary Questions
 

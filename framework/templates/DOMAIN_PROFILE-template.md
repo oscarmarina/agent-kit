@@ -60,12 +60,20 @@ If different command variants are needed, prefer documenting stable target-envir
 
 Domain-specific mistakes that LLMs frequently make. Each pitfall has a detection pattern for mechanical verification.
 
+**Severity levels:** `critical` (data loss, security, silent wrong behavior) / `major` (build or test failures, API breakage) / `minor` (style, performance, non-blocking warnings).
+
+The GateKeeper increments `occurrence_count` each time it detects this pitfall during gate execution. The Builder increments it when discovering the pitfall during design-time review. When `occurrence_count` reaches 3 across different projects, the pitfall is a candidate for promotion to the catalog base profile (see `catalog/README.md` Promotion Protocol).
+
 ### Pitfall 1: [Name]
+- **Severity:** [critical / major / minor]
+- **Occurrence count:** [number — starts at 1 when first documented; increment on each new detection]
 - **What goes wrong:** [Description of the error and why it's tempting]
 - **Correct approach:** [How to do it right]
 - **Detection:** [How to spot this — specific search pattern or command]
 
 ### Pitfall 2: [Name]
+- **Severity:** [critical / major / minor]
+- **Occurrence count:** [number]
 - **What goes wrong:** [Description]
 - **Correct approach:** [How to do it right]
 - **Detection:** [Search pattern or verification step]

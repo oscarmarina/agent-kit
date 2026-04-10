@@ -33,6 +33,27 @@ Document why this profile was selected so routing is auditable and repeatable.
 | [e.g., worker loading strategy] | [Provisional / Verified / Revised After Runtime Validation] | [e.g., pending runtime validation, verified by Gate 3, revised after browser test failure] |
 | [e.g., thumbnail generation strategy] | [Provisional / Verified / Revised After Runtime Validation] | [e.g., design decision only, verified by stress test, changed after memory issue] |
 
+## Research Summary
+
+*(Full projects only — required before writing any other section. For Standard projects, omit this section entirely.)*
+
+What the existing codebase contains that is relevant to this project. This is an investigation result, not a plan.
+
+**Existing modules surveyed:**
+- [Module/directory] — [what it does, what patterns it uses]
+- [Module/directory] — [relevant constraints or dependencies]
+
+**Patterns already in use:**
+- [Pattern name] — [where it appears, what it implies for this project]
+
+**Constraints imposed by existing code:**
+- [What cannot change without breaking downstream consumers]
+- [APIs, events, or data shapes that must remain compatible]
+
+**Greenfield note:** If no prior code exists, write "Greenfield — no prior architecture to survey."
+
+---
+
 ## Architecture
 
 ### Stack
