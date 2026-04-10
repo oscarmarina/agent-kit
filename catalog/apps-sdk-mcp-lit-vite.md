@@ -10,6 +10,8 @@
 **Match Keywords:** openai apps sdk, mcp apps, model context protocol, lit, vite, iframe, postMessage, widgetState
 **Use When:** Select this profile for ChatGPT or MCP Apps widgets built with Lit and bundled with Vite behind an MCP server.
 **Do Not Use When:** Do not use for React-only, Angular-only, or non-web MCP servers that do not render an iframe UI.
+**Last Verified:** 2026-03-09
+<!-- Update this date whenever you modify this profile or re-verify pitfalls/checks against the codebase -->
 
 ## Terminology Mapping
 

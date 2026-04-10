@@ -60,7 +60,7 @@ Apply the domain profile's accumulated knowledge:
 
 ## Process (Scaled by Size)
 
-### Quick (< 3 files, clear intent)
+### Quick (≤ 3 files, clear intent)
 1. Understand intent → Load matching skill if one clearly exists (do not search if trivial) → Code → Verify (Gate 2 minimum) → If fix reveals a missing pitfall or wrong assumption, update domain profile → Done
 
 **Escalation rule — the most commonly violated in practice. Re-check after each file edit:**

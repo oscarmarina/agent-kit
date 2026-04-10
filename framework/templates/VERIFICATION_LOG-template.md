@@ -4,6 +4,8 @@ This log captures the actual output of every verification gate. It is the source
 
 **Rule:** No entry may be written without executing the command and pasting real output. "Assumed to pass" is not an entry.
 
+**Compact format exception:** The compact table (see Gates section below) does not paste raw output — that is its purpose. It is still subject to the rule: never write a compact row without having run the command. A row with exit 0 that was not executed is fabrication, not evidence.
+
 **Format:** This template provides both **compact** and **expanded** gate formats. Use compact for passing gates; use expanded for failures (where raw output has diagnostic value). See Context Pressure Protocol in BUILDER.md.
 
 ---
