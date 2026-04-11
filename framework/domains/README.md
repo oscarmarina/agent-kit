@@ -102,7 +102,7 @@ Selection must be deterministic and auditable:
 
 ## Keeping Profiles Updated
 
-- For profile links: compare `catalog_version` against the current catalog profile to detect updates
+- For profile links: compare `catalog_version` in the link file against the `Profile Version` field in `catalog/[extends].md`. A mismatch means the base has changed since this link was created. Patch differences require reading the new additions; minor or major differences require re-reading the full base profile before writing code
 - **Local pitfalls** that prove useful across projects should be contributed back to the catalog profile via PR
 - **Stack-wide decisions** discovered locally belong in the catalog profile's Decision History, not in the local one
 - Standalone profiles that prove reusable should be moved to `catalog/` and replaced here with a link

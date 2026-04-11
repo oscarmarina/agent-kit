@@ -12,6 +12,12 @@
 **Do Not Use When:** Do not use for React-only, Angular-only, or non-web MCP servers that do not render an iframe UI.
 **Last Verified:** 2026-03-09
 <!-- Update this date whenever you modify this profile or re-verify pitfalls/checks against the codebase -->
+**Profile Version:** 1.0.0
+<!-- Increment on any breaking change to pitfalls, verification commands, or integration rules.
+     Minor additions (new pitfalls, adversary questions) increment the patch segment (1.0.0 → 1.0.1).
+     Changes to verification commands or integration rules increment the minor segment (1.0.0 → 1.1.0).
+     Breaking removals or restructuring increment the major segment (1.0.0 → 2.0.0).
+     Profile links must update their catalog_version to match after re-verifying against this profile. -->
 
 ## Terminology Mapping
 

@@ -4,10 +4,15 @@
 
 ```yaml
 extends: [profile-id]           # Profile ID from catalog/ (e.g., apps-sdk-mcp-lit-vite)
-catalog_version: 1.0.0          # Version of the catalog profile when this link was created
+catalog_version: 1.0.0          # Must match the Profile Version field in the catalog base profile
 ```
 
-> **How it works:** The Builder loads the base profile from `catalog/[extends].md` and applies the local sections below on top. Base sections not overridden here remain active. To check if your base is outdated, compare `catalog_version` against the current profile.
+> **How it works:** The Builder loads the base profile from `catalog/[extends].md` and applies the local sections below on top. Base sections not overridden here remain active.
+>
+> **Version check:** When loading this link, compare `catalog_version` above against the `Profile Version` field in `catalog/[extends].md`:
+> - **Same version** → base profile is current, proceed normally.
+> - **Patch difference** (e.g., `1.0.0` vs `1.0.1`) → new pitfalls or adversary questions were added to the base. Read the additions before proceeding; update `catalog_version` here after re-verifying.
+> - **Minor or major difference** (e.g., `1.0.0` vs `1.1.0` or `2.0.0`) → verification commands or integration rules changed. Treat inherited sections as potentially stale. Re-read the full base profile and update Local Overrides if needed before writing any code. Update `catalog_version` after reconciling.
 
 ---
 
