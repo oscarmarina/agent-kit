@@ -64,9 +64,21 @@ Domain-specific mistakes that LLMs frequently make. Each pitfall has a detection
 
 The GateKeeper increments `occurrence_count` each time it detects this pitfall during gate execution. The Builder increments it when discovering the pitfall during design-time review. When `occurrence_count` reaches 3 across different projects, the pitfall is a candidate for promotion to the catalog base profile (see `catalog/README.md` Promotion Protocol).
 
+**Confidence levels:** every pitfall carries a confidence tier that records how the entry was validated:
+- `confirmed` — originated from a gate failure with real output in a verification log; Source must reference the exact entry
+- `inferred` — derived from design analysis, documentation reading, or multiple circumstantial observations; no single gate log
+- `heuristic` — added proactively based on general domain knowledge; not yet validated by a real failure in this stack
+
+A `heuristic` pitfall with zero occurrence hits after two projects is a removal candidate — it may be wrong or may target code that no longer exists.
+
 ### Pitfall 1: [Name]
 - **Severity:** [critical / major / minor]
 - **Occurrence count:** [number — starts at 1 when first documented; increment on each new detection]
+- **Confidence:** [confirmed / inferred / heuristic]
+- **Source:** [e.g., `docs/[project]-verification.md → Gate 3 FAILED 2026-03-09` | `Design review YYYY-MM-DD`]
+  <!-- confirmed → must reference the exact verification log section where the failure evidence lives
+       inferred  → reference the artifact or reasoning that led to the entry (e.g., "API docs review 2026-04-11")
+       heuristic → note the origin (e.g., "Preventive — carried from prior experience, unconfirmed in this stack") -->
 - **What goes wrong:** [Description of the error and why it's tempting]
 - **Correct approach:** [How to do it right]
 - **Detection:** [How to spot this — specific search pattern or command]
@@ -74,6 +86,8 @@ The GateKeeper increments `occurrence_count` each time it detects this pitfall d
 ### Pitfall 2: [Name]
 - **Severity:** [critical / major / minor]
 - **Occurrence count:** [number]
+- **Confidence:** [confirmed / inferred / heuristic]
+- **Source:** [reference]
 - **What goes wrong:** [Description]
 - **Correct approach:** [How to do it right]
 - **Detection:** [Search pattern or verification step]

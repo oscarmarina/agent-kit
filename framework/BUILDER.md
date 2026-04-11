@@ -216,6 +216,7 @@ The Domain Profile is a shared knowledge structure, but the Builder and the Gate
 - **Integration rules:** New rules discovered while planning how libraries interact.
 - **Decision History:** Decisions that should apply to ALL future projects with this stack.
 - **Terminology:** New domain-specific concepts modeled.
+- **When adding a pitfall during design-time:** set `Confidence: inferred` (derived from analysis or docs) or `Confidence: heuristic` (proactive, unvalidated), and set `Source` to the artifact that led to the entry — e.g., `"API docs review 2026-04-11"` or `"Design review — inferred from initialization chain analysis"`. Do not leave Source blank.
 
 **GateKeeper Updates (Runtime & Mechanical Memory):**
 - **Trigger:** Gate failures, test regressions, build errors.
@@ -293,7 +294,8 @@ After implementation, shift to Adversary Lens:
 5. **For Full projects only:** add to the verification log:
    - Devil's Advocate section (3 uncovered scenarios, weakest link, attack vector)
    - Findings section: list any genuine vulnerabilities or logic flaws found. If none are found, document the most critical attack vectors you investigated and explain why they are not exploitable in this design. Do not fabricate findings to meet a quota — honest "checked X, found nothing" is more valuable than invented issues.
-6. **Promotion check (all sizes):** Scan the active domain profile for pitfalls that meet either promotion criterion:
+6. **Profile Integrity Audit (Full — mandatory; all sizes — when explicitly requested):** Run the Profile Integrity Audit (see section below) before evaluating promotion candidates. Stale and redundant pitfalls must be resolved before promotion — promoting a stale entry is worse than not promoting it. Write one summary line in the Verification Log's Domain Profile Updates section: `"Integrity Audit: N stale, M redundant, K heuristic reviewed. [Actions taken.]"` even if all results are zero.
+7. **Promotion check (all sizes):** Scan the active domain profile for pitfalls that meet either promotion criterion:
    - `occurrence_count >= 3` — seen enough times across projects to be a confirmed stack-level trap
    - `severity: critical` — first occurrence is sufficient evidence for catalog candidacy
 
@@ -306,6 +308,55 @@ After implementation, shift to Adversary Lens:
    If any is no → keep in the local profile. Add a one-line note explaining why it did not promote (e.g., "Detection command references project-specific path"). This closes the audit trail without requiring action.
 
    **For Full projects, this step is mandatory** — write "Promotion check: N candidates found, M promoted, K deferred (reason)" even if the result is zero.
+
+## Profile Integrity Audit
+
+A quality check on the active domain profile itself. The goal is not to add knowledge — it is to validate existing knowledge. A profile that has accumulated stale, redundant, or unverified entries is worse than a smaller, accurate one.
+
+### When to run
+
+- **Full project Self-Review** — mandatory (step 6 above), before the Promotion Check.
+- **After any session that adds 3 or more pitfalls** — bulk additions have a higher redundancy risk.
+- **On explicit request** — e.g., "audit the domain profile" or "is this profile still accurate?"
+
+### Three checks
+
+**1. Stale Detection**
+
+For each pitfall that has a `Detection` command, run it against the current codebase.
+
+- If the command errors because a referenced artifact no longer exists (deleted function, renamed file, removed dependency) → mark the pitfall `status: stale`. Either update the detection pattern to match the current code or remove the entry entirely. A detection command that errors is worse than no detection — it creates false confidence.
+- If the command returns zero matches in a codebase where the pitfall *should* apply → investigate before removing: is the code already fixed (and the pitfall is now a preventive rule) or is the detection pattern wrong?
+
+**2. Redundancy Detection**
+
+Scan all pitfall `Detection` commands for identical or substantially overlapping patterns. If two pitfalls trigger on the same code pattern:
+
+- Determine whether they describe the **same root cause** (redundant → merge, keeping the higher `occurrence_count` and `confirmed` confidence if either has it) or **different root causes exposed by the same symptom** (keep both, add a cross-reference note to each: `"See also: Pitfall N"`).
+- Record the decision in the Verification Log's Domain Profile Updates section. Silence is not acceptable — "checked, no redundancy found" is a valid result.
+
+**3. Confidence Audit**
+
+List all pitfalls with `Confidence: heuristic`. For each one:
+
+- If `occurrence_count >= 1` in this project → upgrade to `Confidence: inferred` and add or update the `Source` reference.
+- If the pitfall has been in the profile across 2 or more projects with zero occurrence hits → flag for removal. A pitfall that never fires after repeated exposure is likely wrong, over-specific, or already resolved by the codebase.
+
+### Recording the audit
+
+Write a one-line summary in the Verification Log's Domain Profile Updates section:
+
+```
+Integrity Audit: 2 stale (removed), 1 redundant (merged Pitfall 4 into 7), 1 heuristic reviewed (upgraded to inferred).
+```
+
+For Full projects this summary is mandatory even when all results are zero:
+
+```
+Integrity Audit: 0 stale, 0 redundant, 0 heuristic candidates. Profile integrity confirmed.
+```
+
+---
 
 ## Context Pressure Protocol
 
