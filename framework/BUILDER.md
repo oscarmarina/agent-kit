@@ -77,6 +77,8 @@ A task that begins as Quick can cross the threshold mid-implementation. The cost
 ### Standard (feature-sized)
 1. Capture Intent (extract or create CIR from prompt → `docs/[project]-intent.md`)
 2. Load domain profile from `framework/domains/` — then **read every Common Pitfall and Adversary Question** before proceeding. These inform the design; loading without reading is useless.
+
+   **If no profile exists for this stack:** create a minimal skeleton now using `framework/templates/DOMAIN_PROFILE-template.md` (Terminology Mapping + Verification Commands, zero pitfalls). Add a note at the top: *"First project on this stack — no accumulated knowledge yet."* Any pitfall entries added during this project start as `Confidence: heuristic`. Do not treat them as validated knowledge until a gate failure confirms them. The Design's Adversary Questions Applied and Domain Pitfalls Applied sections will be answered from generic Adversary Lens reasoning, not from accumulated stack experience — that is honest and expected for a first project.
 3. Load relevant skills — scan `.github/skills/` and `.agents/skills/` for `SKILL.md` files. Read each `description` field. If a skill matches the task domain, load it as design guidance. If no skills exist or none match, skip this step.
 4. **Pre-code checkpoint** — before writing any implementation code, answer these four questions. If you cannot answer confidently, stop and investigate:
    - Do my dependencies already solve this? (Read public APIs first)
