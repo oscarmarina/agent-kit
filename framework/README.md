@@ -19,7 +19,7 @@
 ## Setup
 
 1. Copy `framework/` into the target repo.
-2. Copy `AGENTS.md` from the repo root into the target repo (or create it — see `AGENTS.md` for the current format). It defines the reading order: domain profile first (if it exists), then `BUILDER.md`, then `GATEKEEPER.md`.
+2. Copy `AGENTS.md` from the repo root into the target repo (or create it — see `AGENTS.md` for the current format). It defines the reading order: `BUILDER.md`, then `GATEKEEPER.md`, then `framework/domains/` only when BUILDER step 2 routes there.
 3. Create `docs/` for project-specific artifacts.
 4. Create a profile link in `framework/domains/` that extends a relevant profile from the [catalog](../catalog/), or let the Builder create one during the first project. See `domains/_template.md` for the link format.
 
@@ -197,7 +197,7 @@ One log per project. Completed logs remain as historical evidence.
 |----------|--------|
 | 1 (highest) | Local profile overrides (`framework/domains/` link file) |
 | 2 | Base catalog profile (`catalog/`) |
-| 3 | Skills (`.github/skills/`, `.agents/skills/`) |
+| 3 | Skills (`.github/skills/`, `.agents/skills/`, `.claude/skills/`) |
 | 4 (lowest) | Builder defaults in `BUILDER.md` |
 
 Canonical resolution rules and same-level conflict handling live in [BUILDER.md](BUILDER.md) Rules section. Do not restate here.

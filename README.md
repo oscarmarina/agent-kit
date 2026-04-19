@@ -19,11 +19,8 @@ Agent Kit solves this with an **Adversarial Verification Loop**:
 graph TB
     %% ── Entry & Reading Order ──
     AGENTS["AGENTS.md<br/><i>entry point</i>"]
-    HAS_PROFILE{"Domain profile<br/>exists?"}
-    AGENTS --> HAS_PROFILE
-    HAS_PROFILE -->|"Yes"| READ_PROFILE["Read domain profile first<br/><i>highest value per token</i>"]
-    HAS_PROFILE -->|"No"| BUILDER
-    READ_PROFILE --> BUILDER["BUILDER.md<br/><i>process contract</i>"]
+    AGENTS --> BUILDER["BUILDER.md<br/><i>process contract ·<br/>selects domain profile in step 2</i>"]
+    BUILDER --> GATEKEEPER["GATEKEEPER.md<br/><i>verification standard</i>"]
 
     %% ── Sizing ──
     BUILDER --> SIZE{Determine size}
@@ -110,8 +107,6 @@ graph TB
     style FIX fill:#f44336,color:#fff,stroke:#c62828
     style UPDATE_PROFILE fill:#4CAF50,color:#fff,stroke:#2E7D32
     style LOAD_SKILLS fill:#CE93D8,color:#000,stroke:#8E24AA,stroke-width:1px
-    style HAS_PROFILE fill:#4CAF50,color:#fff,stroke:#2E7D32
-    style READ_PROFILE fill:#4CAF50,color:#fff,stroke:#2E7D32
     style RESUME fill:#9C27B0,color:#fff,stroke:#6A1B9A
     style QUICK fill:#78909C,color:#fff,stroke:#37474F
     style QUICK_DONE fill:#78909C,color:#fff,stroke:#37474F
@@ -119,7 +114,7 @@ graph TB
 ```
 
 **Reading the diagram:**
-- **Green** = Domain Profile — the learning mechanism. Knowledge flows in (from failures) and out (to future projects). The entry flow checks for an existing profile before loading BUILDER.md.
+- **Green** = Domain Profile — the learning mechanism. Knowledge flows in (from failures) and out (to future projects). BUILDER.md step 2 runs the profile selection algorithm (load existing, link to catalog, or create one).
 - **Blue** = Verification Log — the proof mechanism. Real command output, not assumptions.
 - **Orange** = Checkpoints — points where the LLM must pause and think before acting. The pre-code checkpoint (step 4) and self-review are explicit pause points.
 - **Red** = Failure path — failures are captured, root-caused, and fed back into the profile.
@@ -152,7 +147,7 @@ The first project on a new stack creates a minimal profile — terminology, veri
 
 The second project on the same stack loads that profile. The failures from project 1 are now prevented. New discoveries from project 2 further enrich it. And so on.
 
-From real usage: a domain profile started with 3 pitfalls. After two projects, it had 11 pitfalls, 7 adversary questions, and 8 decision history entries — all learned from real bugs. The second project had significantly fewer gate failures because the profile already knew what to watch for.
+From real usage: a domain profile started with 3 pitfalls. After successive projects on the same stack it grew to dozens of pitfalls and adversary questions — all learned from real bugs. Each new project on that stack hits fewer gate failures because the profile already knows what to watch for.
 
 ### What makes them different from documentation
 
@@ -228,7 +223,7 @@ Each document serves a distinct purpose ([Diátaxis](https://diataxis.fr/)):
 
 **Domain profiles:** The [`catalog/`](catalog/) directory contains community-contributed domain profiles built from real projects:
 
-- [`apps-sdk-mcp-lit-vite.md`](catalog/apps-sdk-mcp-lit-vite.md) — MCP Apps + Lit + Vite. 11 pitfalls, 7 adversary questions. Shows what a mature profile looks like after the flywheel has turned.
+- [`apps-sdk-mcp-lit-vite.md`](catalog/apps-sdk-mcp-lit-vite.md) — MCP Apps + Lit + Vite. See `catalog/README.md` for current pitfall / adversary-question counts. Shows what a mature profile looks like after the flywheel has turned.
 
 If a relevant catalog profile exists for your stack, create a profile link in `framework/domains/` that extends it (see `framework/domains/_template.md`). If not, the Builder will create a standalone profile during the first project using `framework/templates/DOMAIN_PROFILE-template.md`.
 

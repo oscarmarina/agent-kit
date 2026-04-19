@@ -21,10 +21,9 @@ Siemens TIA Portal V18, ISA-88 batch model).>
 - <Anti-pattern 2>
 
 ## Domain profile
-- Check `framework/domains/` and `catalog/` for a matching profile.
-- If one exists, load it and apply every pitfall.
-- If none exists, create a minimal skeleton profile before writing code
-  (see BUILDER.md step 2).
+- Do not pre-select a profile by filename guess.
+- Follow the deterministic profile-selection algorithm in `framework/BUILDER.md` step 2.
+- If BUILDER step 2 selects or creates a profile, apply every pitfall before writing code.
 
 ## Verification expectation
 <How "done" is proven. A command, a test suite, a simulation run,

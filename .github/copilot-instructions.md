@@ -12,7 +12,7 @@ When someone copies `framework/` into their own repository and points `AGENTS.md
 
 ```
 .
-├── AGENTS.md                    # Entry point — reading order: domain profile → BUILDER.md → GATEKEEPER.md
+├── AGENTS.md                    # Entry point — reading order: BUILDER.md → GATEKEEPER.md → domain profile (via BUILDER step 2)
 ├── README.md                    # Explanation: what the framework is and why it exists
 ├── GUIDE.md                     # Tutorial: step-by-step first project walkthrough
 ├── LICENSE                      # MIT
@@ -34,7 +34,7 @@ When someone copies `framework/` into their own repository and points `AGENTS.md
 │
 ├── catalog/                     # Community-contributed base profiles
 │   ├── README.md                # How to use and contribute profiles
-│   ├── apps-sdk-mcp-lit-vite.md # Real profile (11 pitfalls, 7 adversary Qs)
+│   ├── apps-sdk-mcp-lit-vite.md # Real profile (23 pitfalls, 17 adversary Qs)
 │
 └── docs/                        # Would hold generated artifacts in a real project
 ```
@@ -56,7 +56,7 @@ The LLM determines project size (Quick / Standard / Full), then follows a struct
 
 1. **Intent** — Capture what and why before doing anything (`docs/[project]-intent.md`)
 2. **Domain profile** — Load accumulated stack knowledge, read every pitfall and adversary question
-3. **Skills** — Load relevant skills from `.github/skills/` and `.agents/skills/` as design guidance
+3. **Skills** — Load relevant skills from `.github/skills/`, `.agents/skills/`, and `.claude/skills/` as design guidance
 4. **Pre-code checkpoint** — 4 questions: deps solve this? wrong assumption? pitfalls checked? right size?
 5. **Design** — Architecture, decisions, risks, pitfalls applied, adversary questions answered. **Optional for Standard; mandatory for Full** with ADRs.
 6. **Gated build** — Gates 0→1→2 per feature phase
@@ -120,7 +120,6 @@ Each verification log has a Progress table at the top. When a session is interru
 - Template changes (`templates/*.md`) affect artifact structure for all future projects. If the artifact contract changes, update `ARTIFACT_SCHEMA_VERSION` and add migration notes.
 - `framework/templates/SUBAGENT_PROMPT_TEMPLATE.md` is a prompt template for repeat sub-agent delegations — an authoring aid, not a runtime role registry. Sub-agents in current tooling are ephemeral per-call.
 - `README.md`, `GUIDE.md`, and `framework/README.md` must stay aligned with `BUILDER.md`. If the process changes, the docs must reflect it.
-- Examples in `examples/` are historical artifacts — do not modify them to match framework changes.
 - Catalog profiles in `catalog/` are contributed by the community — review for quality but preserve the contributor's learnings.
 
 ## Conventions
@@ -129,5 +128,5 @@ Each verification log has a Progress table at the top. When a session is interru
 - Standalone/base profiles use the structure in `framework/templates/DOMAIN_PROFILE-template.md`. Profile links use `framework/domains/_template.md`. Do not deviate.
 - Verification logs are per-project: `docs/[project]-verification.md`, not a shared file.
 - Project code goes in its own directory, never at the repo root.
-- The AGENTS.md entry point defines a 3-step reading order (domain profile → BUILDER.md → GATEKEEPER.md). Process logic lives in BUILDER.md.
-- Skills are guidance, not process. They live in `.github/skills/` (repo-level) or `.agents/skills/` (agent-level/external). Skills cannot override gates, skip artifacts, or replace domain profile correctness. Technical learnings go in domain profiles; process learnings go in skills; project-specific learnings go in `docs/`.
+- The AGENTS.md entry point defines a 3-step reading order (BUILDER.md → GATEKEEPER.md → domain profile via BUILDER step 2). Process logic lives in BUILDER.md.
+- Skills are guidance, not process. They live in `.github/skills/` (repo-level), `.agents/skills/` (agent-level/external), or `.claude/skills/` (Claude-compatible skill installs). Skills cannot override gates, skip artifacts, or replace domain profile correctness. Technical learnings go in domain profiles; process learnings go in skills; project-specific learnings go in `docs/`.

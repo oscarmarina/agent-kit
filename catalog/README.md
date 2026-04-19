@@ -6,7 +6,7 @@ Community-contributed domain profiles for Agent Kit. Each profile captures stack
 
 | Profile | Version | Stack | Pitfalls | Adversary Qs |
 |---------|---------|-------|----------|--------------|
-| [apps-sdk-mcp-lit-vite](apps-sdk-mcp-lit-vite.md) | 1.0.0 | MCP Apps + Lit + Vite + TypeScript | 11 | 7 |
+| [apps-sdk-mcp-lit-vite](apps-sdk-mcp-lit-vite.md) | 1.0.0 | MCP Apps + Lit + Vite + TypeScript | 23 | 17 |
 
 ## Using a profile
 
@@ -42,7 +42,7 @@ A pitfall becomes a **catalog candidate** when it meets either criterion:
 | `occurrence_count` | `>= 3` across different projects | Three independent hits confirm the trap is stack-level, not a one-off |
 | `severity: critical` | First occurrence | Data loss, silent wrong behavior, or security failures warrant immediate promotion candidacy |
 
-The GateKeeper flags `critical` pitfalls with `<!-- catalog candidate: critical severity -->` on detection. The Builder evaluates all candidates during the Self-Review Promotion Check (step 6 of `framework/BUILDER.md`).
+The GateKeeper flags `critical` pitfalls with `<!-- catalog candidate: critical severity -->` on detection. The Builder evaluates all candidates during the Promotion Check (step 7 of `framework/BUILDER.md`), run right after Self-Review (step 6).
 
 ### Portability test (three questions)
 

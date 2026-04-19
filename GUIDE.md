@@ -45,11 +45,11 @@ your-repo/
 └── docs/
 ```
 
-Open `AGENTS.md` and verify it contains reading order instructions that point to `framework/domains/` first (for existing domain profiles), then `framework/BUILDER.md`, then `framework/GATEKEEPER.md`.
+Open `AGENTS.md` and verify it contains reading order instructions that point to `framework/BUILDER.md` first, then `framework/GATEKEEPER.md`, then `framework/domains/` (only when BUILDER step 2 routes you there).
 
 `framework/VERSION` tells you which framework release you copied. `framework/ARTIFACT_SCHEMA_VERSION` tells you which artifact contract the templates expect. When the schema changes, migrate your existing docs before treating old artifacts as current.
 
-The key principle: if a domain profile already exists for your stack, the LLM reads it first — pitfalls, adversary questions, and verification commands are the highest-value knowledge per token. If no profile exists (first project on a new stack), the LLM skips straight to `BUILDER.md` which will guide it to create one.
+The key principle: BUILDER.md owns the profile-selection algorithm (step 2). It deterministically decides whether to load an existing profile, link to a catalog base, or create a minimal skeleton. Agents do not pre-select profiles by filename guess — they follow the algorithm.
 
 In single-agent environments (most CLI tools and IDE assistants), the same LLM fulfills both Builder and GateKeeper roles — `BUILDER.md` defines how that works. The process logic lives in their respective files.
 
@@ -109,11 +109,11 @@ If no base profile exists, the LLM creates a **standalone full profile** directl
 
 ## Step 6: Skills get loaded (if they exist)
 
-If your repo has skills installed in `.github/skills/` or `.agents/skills/`, the LLM scans their descriptions and loads any that match the task. For example, a `frontend-design` skill would be loaded for a UI task but ignored for a backend API.
+If your repo has skills installed in `.github/skills/`, `.agents/skills/`, or `.claude/skills/`, the LLM scans their descriptions and loads any that match the task. For example, a `frontend-design` skill would be loaded for a UI task but ignored for a backend API.
 
 Skills provide design guidance — aesthetic direction, API conventions, documentation style — but they don't replace the domain profile or the verification gates. You might not have any skills yet, and that's fine. The framework works without them.
 
-> **Tip:** You can install community skills from [skills.sh](https://skills.sh) (`npx skills add owner/skill-name`) or create your own in `.github/skills/your-skill/SKILL.md`.
+> **Tip:** You can install community skills from [skills.sh](https://skills.sh) (`npx skills add owner/skill-name`) or create your own in `.github/skills/your-skill/SKILL.md`, `.agents/skills/your-skill/SKILL.md`, or `.claude/skills/your-skill/SKILL.md`.
 
 ## Step 6.5: If your environment supports sub-agents
 

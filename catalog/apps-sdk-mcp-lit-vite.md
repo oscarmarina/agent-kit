@@ -1,5 +1,6 @@
 # Domain Profile: Apps SDK + MCP + Lit + Vite + TypeScript
 
+**Artifact Schema Version:** 1.1.0
 **Domain:** Web Apps
 **Stack:** Apps SDK + MCP + Lit + Vite + TypeScript
 **Standards:** MCP Apps UI bridge, JSON-RPC 2.0, OWASP input validation basics

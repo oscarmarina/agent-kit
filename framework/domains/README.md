@@ -70,7 +70,7 @@ catalog_version: 1.0.0
 - Expected output: all widget tests pass
 ```
 
-This profile inherits all 11 pitfalls, 7 adversary questions, terminology, integration rules, and automated checks from `apps-sdk-mcp-lit-vite` — and adds one local pitfall plus a gate override.
+This profile inherits every pitfall, adversary question, terminology mapping, integration rule, and automated check from `apps-sdk-mcp-lit-vite` — and adds one local pitfall plus a gate override.
 
 Local pitfalls use the same metadata as base pitfalls (`Severity`, `Occurrence count`, `Confidence`, `Source`, `What goes wrong`, `Correct approach`, `Detection`). Without that shared schema, the Builder cannot run Integrity Audit or Promotion Check consistently across standalone and linked profiles.
 
