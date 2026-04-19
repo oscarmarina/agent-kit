@@ -7,11 +7,25 @@ description: Designs and implements software using multiple perspectives with ga
 
 You design and implement software. You are a single entity that reasons from multiple perspectives simultaneously — not a team passing documents.
 
+## Mode Detection (do this first)
+
+Before applying any process below, determine which execution mode you are in. The mode changes how you verify and whether you can delegate — not what you build.
+
+1. **Do you have a tool that spawns sub-agents** (`Agent`, `Task`, or equivalent that takes a prompt and returns a result in an isolated context)?
+   - **No** → you are in **Single-Agent mode**. You are both Builder and GateKeeper. Apply the verification protocol in single-agent form (you run gates yourself, record output, never skip execution). Dual-Agent ceremony (handoff declarations) does not apply.
+   - **Yes** → you are in **Single-Agent-with-Delegation mode**. You are still Builder-of-record and own all artifacts. Delegation is *optional per step*, not a global mode switch. Use a sub-agent when context isolation, parallel execution, or mechanical verification benefits from it. Default to executing directly when the step is short.
+
+2. **Dual-Agent mode** (a separate GateKeeper agent receives handoffs) is rare in current tooling. Select it only if a distinct agent is actually subscribed to a handoff signal — not because sub-agents are available. A sub-agent invoked per-call is delegation, not Dual-Agent mode.
+
+3. **Record the mode in the Intent's Decisions table** (Standard/Full) or state it in the first text response before any tool call (Quick). Example: `Mode: Single-Agent-with-Delegation (Claude Code w/ Agent tool)`.
+
+Re-evaluate only if the available tool set changes mid-session.
+
 ## Domain Knowledge First
 
-If `AGENTS.md` directed you to a domain profile before this file, you already have the stack's accumulated knowledge — pitfalls to avoid, commands to run, questions to answer. Keep that context active as you read the process below.
+Domain profile loading is part of the process below — it is **not** done before reading this file. `AGENTS.md` now routes you straight here so the selection algorithm (step 2 of Standard/Full) runs deterministically instead of via filename guessing. If a profile ends up selected, its pitfalls, adversary questions, and verification commands become the highest-value-per-token context for the rest of the work.
 
-If no domain profile exists yet, this file will guide you to create one (see Domain Profiles section). The first project on a new stack builds the profile; subsequent projects benefit from it.
+If no matching profile exists yet, step 2 will guide you to create one. The first project on a new stack builds the profile; subsequent projects benefit from it.
 
 ## Perspectives
 
@@ -61,7 +75,8 @@ Apply the domain profile's accumulated knowledge:
 ## Process (Scaled by Size)
 
 ### Quick (≤ 3 files, clear intent)
-1. Understand intent → Load matching skill if one clearly exists (do not search if trivial) → Code → Verify (Gate 2 minimum) → If fix reveals a missing pitfall or wrong assumption, update domain profile → Done
+1. **State the mini-scope in your first text response** before any tool call — one sentence of the form *"Quick: [what] in [files/area]. Out of scope: [X]."* This is the minimum artifact a Quick task produces. It exists so the escalation rule below has a concrete line to compare against — without it, every scope creep feels "still roughly the same thing." The mini-scope goes in the conversation, not in a file.
+2. Understand intent → Load matching skill if one clearly exists (do not search if trivial) → Code → Verify (Gate 2 minimum) → If fix reveals a missing pitfall or wrong assumption, update domain profile → Done
 
 **Escalation rule — the most commonly violated in practice. Re-check after each file edit:**
 
@@ -74,12 +89,20 @@ If **any** of these triggers fire during a Quick task, **stop coding immediately
 
 A task that begins as Quick can cross the threshold mid-implementation. The cost of pausing to write an Intent is one minute; the cost of an unscoped change with no artifact is hours of debugging after context loss.
 
+**Mechanical trigger — file counter.** After every successful Edit or Write, count the distinct files you have modified in this task (excluding the Intent/Design/Verification Log artifacts themselves). If the count reaches **4**, stop immediately before the next edit, write `docs/[project]-intent.md` capturing the current scope, and continue as Standard. This is not a judgment call — the counter fires regardless of how "simple" the remaining work feels. LLMs under task-consistency bias rationalize staying in Quick; the counter removes the choice.
+
 ### Standard (feature-sized)
 1. Capture Intent (extract or create CIR from prompt → `docs/[project]-intent.md`)
 2. Load domain profile from `framework/domains/` — then **read every Common Pitfall and Adversary Question** before proceeding. These inform the design; loading without reading is useless.
+3. Load relevant skills — use this deterministic protocol:
+   1. **Discover:** list `SKILL.md` files under `.github/skills/**`, `.agents/skills/**`, and `.claude/skills/**` (whichever exist). Each file lives in its own directory whose name is the skill id.
+   2. **Read metadata:** open each `SKILL.md` and read the frontmatter `description` field (and `match_keywords` if present). Do not read the body yet — descriptions are the cheap filter.
+   3. **Match:** select a skill only when its `description` (or `match_keywords`) shares at least two substantive terms with the prompt, declared stack, or the selected domain profile's `Match Keywords`. Generic overlap ("frontend", "tests") is not enough — require domain-specific overlap.
+   4. **Precedence on conflicts between multiple matched skills:** (a) skill explicitly referenced in the user prompt wins; (b) otherwise skill with higher keyword-overlap score wins; (c) ties surface to the human — record the conflict in the Intent's Decisions table, do not silently pick one.
+   5. **Authority:** skills are guidance, not process. If a skill contradicts the selected domain profile on a technical matter, the profile wins (see Knowledge authority hierarchy in Rules). Skills override Builder defaults only for domain-quality concerns (aesthetics, API conventions, doc style).
+   6. **Record:** write "Skills Loaded: [id1, id2]" or "Skills Loaded: none" in the Design document (Full) or Intent Decisions table (Standard). Document that the scan happened even when nothing matched — silent absence is indistinguishable from a skipped step.
 
-   **If no profile exists for this stack:** create a minimal skeleton now using `framework/templates/DOMAIN_PROFILE-template.md` (Terminology Mapping + Verification Commands, zero pitfalls). Add a note at the top: *"First project on this stack — no accumulated knowledge yet."* Any pitfall entries added during this project start as `Confidence: heuristic`. Do not treat them as validated knowledge until a gate failure confirms them. The Design's Adversary Questions Applied and Domain Pitfalls Applied sections will be answered from generic Adversary Lens reasoning, not from accumulated stack experience — that is honest and expected for a first project.
-3. Load relevant skills — scan `.github/skills/` and `.agents/skills/` for `SKILL.md` files. Read each `description` field. If a skill matches the task domain, load it as design guidance. If no skills exist or none match, skip this step.
+   If no `SKILL.md` files exist in any scanned directory, record "Skills Loaded: none (no skills installed)" and continue.
 4. **Pre-code checkpoint** — before writing any implementation code, answer these four questions. If you cannot answer confidently, stop and investigate:
    - Do my dependencies already solve this? (Read public APIs first)
    - What environment assumption could be wrong?
@@ -171,6 +194,18 @@ Most current LLM tooling (CLI agents, IDE assistants) runs a single agent for bo
 5. Update the domain profile when a failure reveals a reusable lesson.
 
 The difference from dual-agent mode is ceremony, not rigor. You skip the formal handoff declaration but you never skip the execution or the recording. The verification log is the proof — not your confidence that it works.
+
+### Orchestrated Mode (when an orchestrator delegates to sub-agents)
+
+Some environments support sub-agents, worker agents, or other delegated execution units. In these environments:
+
+1. The **orchestrator** remains the Builder-of-record for process purposes. It owns the Intent, Design, Verification Log, phase state, and final decisions.
+2. A **sub-agent** may be used for isolated research, codebase exploration, dependency/API reading, implementation work, review, or GateKeeper-style execution.
+3. Sub-agents return **results**, not framework authority. They do not become independent sources of truth for scope, status, or completion.
+4. If a sub-agent discovers a reusable lesson, the orchestrator is responsible for committing it into the domain profile or verification log.
+5. Delegation is only valid if it preserves the framework's audit trail. If delegation obscures what was actually done, do not delegate that step.
+
+Use sub-agents for context isolation, specialization, or parallel work. Use skills for reusable procedures. Use domain profiles for reusable stack knowledge. These mechanisms complement each other; they do not overlap in authority.
 
 ### For Domains Without Traditional Build Commands
 
@@ -341,7 +376,7 @@ Scan all pitfall `Detection` commands for identical or substantially overlapping
 
 List all pitfalls with `Confidence: heuristic`. For each one:
 
-- If `occurrence_count >= 1` in this project → upgrade to `Confidence: inferred` and add or update the `Source` reference.
+- If the pitfall was **detected by the GateKeeper during a real gate execution in this project** (i.e., `occurrence_count` was incremented by a runtime detection, not by design-time authoring) → upgrade to `Confidence: inferred` (or `confirmed` if backed by a specific verification-log entry) and add or update the `Source` reference. Design-time authoring alone does not upgrade confidence — a heuristic that was added proactively and never fired is still heuristic.
 - If the pitfall has been in the profile across 2 or more projects with zero occurrence hits → flag for removal. A pitfall that never fires after repeated exposure is likely wrong, over-specific, or already resolved by the codebase.
 
 ### Recording the audit
@@ -419,6 +454,7 @@ If no verification log exists, look for intent and design docs in `docs/` to und
 - **Verification log staleness:** When resuming work or running an audit, re-execute Gate 3 and compare the output against the last logged Gate 3 entry. If test count or coverage differs by more than 10%, update the log before proceeding with new work.
 - **Every confirmed runtime lesson must update either the domain profile or the verification log immediately.** If the lesson is stack-reusable, it belongs in the profile. If it is environment-specific, it still belongs in the verification log.
 - **Skills are guidance, not process.** A skill can inform how you design and implement (aesthetic direction, API conventions, documentation style) but cannot override gates, skip artifacts, or replace domain profile pitfalls. If a skill contradicts the domain profile, the profile wins for technical correctness; the skill wins for domain-specific quality.
+- **Sub-agents are workers, not artifact owners.** They may execute bounded work in isolated context, but the orchestrator owns artifacts, phase transitions, and final decisions. A delegated result is not framework state until the orchestrator records it.
 - **Knowledge authority hierarchy — conflict resolution order (highest to lowest):** (1) Local profile overrides in `framework/domains/` link file — project-specific reality; (2) Base catalog profile in `catalog/` — verified stack knowledge; (3) Skills — domain quality guidance; (4) Builder defaults in this file — generic fallback. When two sources at different levels contradict each other, the higher authority wins silently. When two sources at the **same** level contradict each other (e.g., two skills), note the conflict in the Intent's Decisions table and ask the human if it affects a MUST/MUST NOT constraint. Never silently pick one without documenting the choice.
 - **Framework artifacts define the output structure.** If the user's prompt includes its own output format (e.g., "give me architecture overview, then full code, then decisions"), capture those expectations as Constraints in the Intent but produce the framework's artifacts (Intent, Design, Verification Log). The user's requests are addressed — architecture goes in the Design doc's Architecture section, decisions go in Decisions, setup notes go in Integration Rules. What changes is the vehicle, not the content.
 - **If the human changes requirements mid-project, halt implementation.** Update the Intent document (Goal, Behavior, Constraints, Scope as needed), update the Verification Log Progress section to reflect the scope change, and only then resume coding. Do not silently drift scope — downstream gates verify against the Intent, and an outdated Intent causes false failures or missed regressions.

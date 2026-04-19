@@ -30,6 +30,7 @@ your-repo/
 ├── framework/
 │   ├── BUILDER.md
 │   ├── GATEKEEPER.md
+│   ├── ARTIFACT_SCHEMA_VERSION
 │   ├── README.md
 │   ├── VERSION
 │   ├── domains/
@@ -45,6 +46,8 @@ your-repo/
 ```
 
 Open `AGENTS.md` and verify it contains reading order instructions that point to `framework/domains/` first (for existing domain profiles), then `framework/BUILDER.md`, then `framework/GATEKEEPER.md`.
+
+`framework/VERSION` tells you which framework release you copied. `framework/ARTIFACT_SCHEMA_VERSION` tells you which artifact contract the templates expect. When the schema changes, migrate your existing docs before treating old artifacts as current.
 
 The key principle: if a domain profile already exists for your stack, the LLM reads it first — pitfalls, adversary questions, and verification commands are the highest-value knowledge per token. If no profile exists (first project on a new stack), the LLM skips straight to `BUILDER.md` which will guide it to create one.
 
@@ -80,7 +83,7 @@ The LLM reads `AGENTS.md`, follows the link to `BUILDER.md`, and determines the 
 
 - **Quick** — less than 3 files, clear scope. Skips most documentation.
 - **Standard** — feature-sized. Produces Intent + Verification Log. Design is optional — if the architecture is straightforward, key decisions go directly in the Intent.
-- **Full** — new project or major refactor. Everything from Standard plus a mandatory Design document with ADRs and Devil's Advocate review.
+- **Full** — new project or major refactor. Everything from Standard plus a mandatory Design document with ADR Summary and Devil's Advocate review.
 
 For a new project like ours, it will choose **Standard** or **Full**. You will see it say something like: *"This is a Full-sized project. I'll start with the Intent document."*
 
@@ -112,6 +115,74 @@ Skills provide design guidance — aesthetic direction, API conventions, documen
 
 > **Tip:** You can install community skills from [skills.sh](https://skills.sh) (`npx skills add owner/skill-name`) or create your own in `.github/skills/your-skill/SKILL.md`.
 
+## Step 6.5: If your environment supports sub-agents
+
+Some agent runtimes support sub-agents or delegated workers. In Agent Kit, use them as an execution aid, not as a replacement for artifacts:
+
+- The **orchestrator** still owns `Intent`, `Design`, `Verification Log`, and phase state.
+- A **sub-agent** can explore the codebase, read dependency APIs, implement a bounded change, or execute GateKeeper-style verification in isolated context.
+- A **skill** remains a reusable instruction file; it is not the same thing as a sub-agent.
+
+Quick rule:
+
+- use a **domain profile** for reusable stack knowledge
+- use a **skill** for reusable procedure
+- use a **sub-agent** for isolated execution
+- use **sub-agent + skill** when the worker should follow a reusable procedure
+
+### Invoking sub-agents in Claude Code
+
+Claude Code exposes the `Agent` tool. The orchestrator (your main Claude session) uses it to spawn workers. Two things matter: the **role** and the **briefing**.
+
+**The briefing must be self-contained.** The sub-agent starts with no knowledge of your session. Do not tell it to "read AGENTS.md" — that makes it behave as a full orchestrator, not a scoped worker. Instead, paste the relevant excerpt directly into the prompt.
+
+**Common patterns:**
+
+```
+// GateKeeper sub-agent — run a gate and return real output
+You are a GateKeeper sub-agent. Run one verification gate and report the result.
+
+Gate: 2 (Feature phase)
+Command: npm run build && npm test  (run from project root: my-project/)
+Project root: /path/to/my-project/
+
+Return:
+- exit code
+- raw stdout/stderr (paste, do not paraphrase)
+- failure classification: Product / Environment / Process
+Do not edit any files.
+```
+
+```
+// Research sub-agent — survey the codebase before design
+You are a research sub-agent. Survey the existing codebase and return findings.
+
+Files to read: src/server/, src/widget/
+Question: What patterns does the current MCP transport use? What cannot change without breaking existing clients?
+
+Return a concise summary: modules found, patterns in use, constraints imposed by existing code.
+Do not make recommendations. Do not edit files.
+```
+
+```
+// Dependency API reader — read an SDK before implementation
+You are a dependency API reader. Read the public API of a library and return what is relevant.
+
+Library: @modelcontextprotocol/ext-apps (installed at node_modules/)
+Question: What does the App class export? What methods handle tool calls and notifications?
+
+Return: relevant exported types, method signatures, and any version notes.
+Do not implement anything.
+```
+
+After the sub-agent returns, **you** (the orchestrator) decide what is durable:
+
+- A gate result → write it to `docs/[project]-verification.md`
+- A codebase finding → summarize it in the Design's Research Summary section
+- A new pitfall discovered during gate failure → add it to the domain profile
+
+If you want to keep repeat delegations for a role consistent, author the prompt body once in `framework/templates/SUBAGENT_PROMPT_TEMPLATE.md` — it is a **prompt template**, not a runtime contract, since current tooling spawns sub-agents per-call without persistent role registration.
+
 ## Step 7: Review the Design (Full) or Decisions (Standard)
 
 Before writing any code, the LLM runs a **pre-code checkpoint** — four questions that force it to pause: *Do my dependencies already solve this? What environment assumption could be wrong? Have I checked every pitfall? Is this still the right size?* This checkpoint is inlined into the process (step 4) so it cannot be skipped.
@@ -125,6 +196,7 @@ Then comes the design phase, which varies by size:
 - **Stack** — technologies with verified versions
 - **Architecture** — structure, data flow, initialization chain
 - **Decisions** — every architectural choice with rationale
+- **ADR Summary** — one durable row per major architecture decision in Full projects
 - **Risks** — what could go wrong, identified before coding
 - **Adversary Questions Applied** — answers to domain-specific traps from the profile
 - **Domain Pitfalls Applied** — how each known pitfall is addressed
@@ -143,7 +215,7 @@ Now the LLM starts building. It proceeds through gates:
 4. **Gate 3** — writes tests, runs the full suite
 5. **Gate 4** — clean build from scratch (deletes everything, reinstalls, rebuilds, retests)
 
-After each gate, the LLM pastes the real command output into `docs/[project]-verification.md`. Open it periodically — you will see actual terminal output, not claims.
+After each gate, the LLM records the real command result in `docs/[project]-verification.md`. Passing gates may use the compact format; failures, blocked gates, and command substitutions use the expanded format with raw output. Open it periodically — you will see real evidence, not claims.
 
 If a gate fails, the LLM:
 1. Records the failure in the verification log
@@ -185,7 +257,7 @@ After the project, check what the LLM added to the domain profile.
 
 **If you created a profile link** (`framework/domains/[your-profile].md` with `extends`) — check two places:
 
-- **Your profile link** — project-specific discoveries: new Local Pitfalls, Local Decision History
+- **Your profile link** — project-specific discoveries: new Local Pitfalls (using the same pitfall metadata fields as base profiles), Local Decision History
 - **The base profile** (`catalog/[profile-id].md`) — stack-wide discoveries: new Common Pitfalls, Adversary Questions, Decision History, Automated Checks
 
 This is the flywheel. The next project on this stack inherits all accumulated knowledge. For profile links, local pitfalls that prove useful across projects should be contributed back to the catalog profile.

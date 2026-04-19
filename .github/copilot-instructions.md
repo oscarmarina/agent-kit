@@ -21,7 +21,8 @@ When someone copies `framework/` into their own repository and points `AGENTS.md
 │   ├── BUILDER.md               # Process contract — the LLM reads and follows this
 │   ├── GATEKEEPER.md            # Verification agent — executes commands, enforces gates
 │   ├── README.md                # Technical reference — gates, artifacts, contracts
-│   ├── VERSION                  # Framework version for tracking updates
+│   ├── VERSION                  # Framework release version
+│   ├── ARTIFACT_SCHEMA_VERSION  # Artifact contract version used by templates and audits
 │   ├── domains/
 │   │   ├── _template.md         # Template for creating profile links that extend catalog profiles
 │   │   └── README.md            # How domain profiles work
@@ -65,13 +66,23 @@ The LLM determines project size (Quick / Standard / Full), then follows a struct
 
 In single-agent environments (most current tooling), the LLM fulfills both Builder and GateKeeper roles with the same mechanical discipline.
 
+In orchestrated environments with sub-agents, the orchestrator owns artifacts and process state. Sub-agents may do isolated work, but they return results rather than owning Intent, Design, Verification Log, or final decisions.
+
 ### Domain profiles (the differentiator)
 
 Domain profiles use an **inheritance model**. Base profiles in `catalog/` contain stack-wide knowledge (pitfalls, adversary questions, automated checks, decision history). Profile links in `framework/domains/` extend a base profile with project-specific additions. Every gate failure becomes a new pitfall. Every project makes the next one better.
 
 Community-contributed base profiles live in `catalog/`. Create a profile link in `framework/domains/` that extends the relevant catalog profile — see `framework/domains/_template.md` for the format.
 
-A base profile contains: Selection Metadata, Terminology Mapping, Verification Commands, Common Pitfalls, Adversary Questions, Integration Rules, Automated Checks, Decision History, Review Checklist. A profile link contains: `extends` reference, Local Pitfalls, Local Overrides, Local Decision History.
+A base profile contains: Selection Metadata, Terminology Mapping, Verification Commands, Common Pitfalls, Adversary Questions, Integration Rules, Automated Checks, Decision History, Review Checklist. A profile link contains: `extends` reference, Local Pitfalls, Local Overrides, Local Decision History. Local Pitfalls use the same metadata fields as base pitfalls (`Severity`, `Occurrence count`, `Confidence`, `Source`, `What goes wrong`, `Correct approach`, `Detection`).
+
+### Skills vs sub-agents vs domain profiles
+
+- **Domain profiles** are durable stack memory.
+- **Skills** are progressively disclosed instructions.
+- **Sub-agents** are isolated runtime workers used for delegation, context isolation, specialization, or parallelization.
+
+Sub-agents do not replace artifacts. The orchestrator remains responsible for writing or updating framework artifacts and for final pass/fail decisions.
 
 ### Verification gates
 
@@ -106,7 +117,8 @@ Each verification log has a Progress table at the top. When a session is interru
 
 - `BUILDER.md` is the source of truth for the process. Changes here affect how every LLM behaves.
 - Profile link template (`framework/domains/_template.md`) defines what new profile links look like. Full profile template (`framework/templates/DOMAIN_PROFILE-template.md`) defines standalone profiles and catalog contributions. Changes propagate to all future profiles.
-- Template changes (`templates/*.md`) affect artifact structure for all future projects.
+- Template changes (`templates/*.md`) affect artifact structure for all future projects. If the artifact contract changes, update `ARTIFACT_SCHEMA_VERSION` and add migration notes.
+- `framework/templates/SUBAGENT_PROMPT_TEMPLATE.md` is a prompt template for repeat sub-agent delegations — an authoring aid, not a runtime role registry. Sub-agents in current tooling are ephemeral per-call.
 - `README.md`, `GUIDE.md`, and `framework/README.md` must stay aligned with `BUILDER.md`. If the process changes, the docs must reflect it.
 - Examples in `examples/` are historical artifacts — do not modify them to match framework changes.
 - Catalog profiles in `catalog/` are contributed by the community — review for quality but preserve the contributor's learnings.

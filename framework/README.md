@@ -6,6 +6,7 @@
 |------|---------|
 | `BUILDER.md` | Process contract — lenses, gates, pre-implementation checkpoint, single/dual-agent verification, rules |
 | `GATEKEEPER.md` | Verification agent contract — executes commands, enforces gates, updates pitfalls |
+| `ARTIFACT_SCHEMA_VERSION` | Artifact schema version for Intent/Design/Verification/Profile templates |
 | `domains/_template.md` | Template for creating profile links that extend catalog profiles |
 | `domains/README.md` | How domain profiles work — types, matching, merge rules |
 | `domains/*.md` | Domain profiles — standalone or links extending catalog base profiles |
@@ -13,6 +14,7 @@
 | `templates/DESIGN.md` | Template for Design documents |
 | `templates/VERIFICATION_LOG-template.md` | Template for gate execution logs with progress tracking |
 | `templates/DOMAIN_PROFILE-template.md` | Template for creating standalone full domain profiles |
+| `templates/SUBAGENT_PROMPT_TEMPLATE.md` | Prompt template for repeat sub-agent delegations (ephemeral per-call; not a runtime role registry) |
 
 ## Setup
 
@@ -29,6 +31,7 @@ repo/
 ├── framework/              ← framework (reusable)
 │   ├── BUILDER.md
 │   ├── GATEKEEPER.md
+│   ├── ARTIFACT_SCHEMA_VERSION
 │   ├── VERSION
 │   ├── domains/
 │   └── templates/
@@ -40,6 +43,13 @@ repo/
 ```
 
 Project code goes in its own directory — never at the repo root.
+
+## Versioning
+
+- `framework/VERSION` tracks the framework release.
+- `framework/ARTIFACT_SCHEMA_VERSION` tracks the artifact contract used by the templates (`INTENT`, `DESIGN`, `VERIFICATION_LOG`, standalone profiles, and profile links).
+- The two values may move together, but they are not the same thing. A documentation/process release can leave the artifact schema unchanged, and a schema bump requires migration guidance.
+- When the artifact schema changes, a migration guide is provided at `framework/MIGRATION-[old]-to-[new].md` (e.g., `framework/MIGRATION-1.0-to-1.1.md`). Artifacts created under the previous schema remain readable but should not be assumed to satisfy the new audit contract until migrated.
 
 ## Prompts
 
@@ -84,13 +94,15 @@ When in doubt, the Builder goes one size up.
 
 Commands come from the domain profile. If no profile exists, they are defined in the Design document.
 
+Default execution context: run profile/design verification commands from the **project code root** (the project directory that contains the code, build files, and test config), not from the framework repo root, unless the command explicitly sets a different path.
+
 If the exact command cannot be executed because of environment or tooling restrictions, the GateKeeper may use a mechanically equivalent command that preserves verification intent. In that case, the verification log must record:
 
 - the intended command
 - the effective command actually executed
 - why the substitution was necessary
 
-"Assumed to pass" is never valid evidence. Real output must be pasted in the verification log.
+"Assumed to pass" is never valid evidence. The verification log must record real execution evidence: compact rows are allowed for passing gates, while failures, blocked gates, and command substitutions must include expanded raw output.
 
 ### On failure
 
@@ -111,14 +123,7 @@ Failures should be classified when possible as:
 
 ## Pre-implementation checkpoint
 
-Four questions inlined into Standard step 4 (and applicable to all sizes):
-
-1. **Do my dependencies already solve this?** Read the public API (`.d.ts`, package docs, `npm view`). If a library provides the functionality, use it.
-2. **What environment assumption could be wrong?** Identify at least one assumption about runtime, host, or deployment target.
-3. **Have I checked the domain profile pitfalls?** Scan every Common Pitfall and Adversary Question against the plan.
-4. **Is this still the right size?** Check escalation triggers (>3 files, public API changes, new dependencies, scope expansion).
-
-Inlined into the process flow so it cannot be skipped by forgetting to consult a separate section.
+Four questions inlined into Standard step 4 (and applicable to all sizes). See [BUILDER.md](BUILDER.md) Standard step 4 for the canonical list and enforcement rule — do not duplicate here to avoid drift.
 
 ## Artifacts
 
@@ -140,6 +145,8 @@ Source of truth for scope. Template: `templates/INTENT.md`
 
 The Anti-Loop Rule requires the Intent to be produced before continued investigation. Unclear decisions are written as open questions and asked to the human.
 
+Every artifact created from the templates records `Artifact Schema Version` so future audits know which contract the file follows.
+
 ### Design (`docs/[project]-design.md`)
 
 Architecture + decisions + risks. **Required for Full; optional for Standard** (see Standard step 5 in BUILDER.md). Template: `templates/DESIGN.md`
@@ -155,6 +162,7 @@ Architecture + decisions + risks. **Required for Full; optional for Standard** (
 | Initialization Chain | Exact startup sequence |
 | Dependencies | Production and development with versions and purpose |
 | Decisions | Architectural choices with rationale and rejected alternatives |
+| ADR Summary | Durable record of major Full-project architecture decisions |
 | Risks | Identified before implementation (Adversary Lens) |
 | Adversary Questions Applied | Every profile adversary question answered against this design |
 | Domain Pitfalls Applied | How each profile pitfall is addressed |
@@ -185,23 +193,27 @@ One log per project. Completed logs remain as historical evidence.
 
 ## Knowledge authority hierarchy
 
-When multiple knowledge sources apply to the same decision, this is the conflict resolution order — the higher authority always wins:
+| Priority | Source |
+|----------|--------|
+| 1 (highest) | Local profile overrides (`framework/domains/` link file) |
+| 2 | Base catalog profile (`catalog/`) |
+| 3 | Skills (`.github/skills/`, `.agents/skills/`) |
+| 4 (lowest) | Builder defaults in `BUILDER.md` |
 
-| Priority | Source | Scope | Example |
-|----------|--------|-------|---------|
-| 1 (highest) | Local profile overrides (`framework/domains/` link file) | This project only | Environment-specific gate substitution |
-| 2 | Base catalog profile (`catalog/`) | All projects on this stack | Verified pitfalls, integration rules |
-| 3 | Skills (`.github/skills/`, `.agents/skills/`) | Domain quality guidance | API conventions, documentation style |
-| 4 (lowest) | Builder defaults in `BUILDER.md` | Generic fallback | Generic adversary questions |
+Canonical resolution rules and same-level conflict handling live in [BUILDER.md](BUILDER.md) Rules section. Do not restate here.
 
-**Applying the hierarchy:**
+## Sub-agents and Skills
 
-- If a local override contradicts the catalog base → **local override wins** (project-specific reality trumps general knowledge)
-- If the catalog profile contradicts a skill → **profile wins for technical correctness** (a verified pitfall overrides style guidance)
-- If a skill contradicts Builder defaults → **skill wins** (domain-specific quality beats generic process)
-- If sources at the same level conflict (e.g., two skills loaded simultaneously) → the Builder notes the conflict in the Intent's Decisions table and asks the human if it affects a MUST/MUST NOT constraint
+Sub-agents are an **execution mechanism**, skills are **loadable guidance**, domain profiles are **stack memory**. Their responsibility split, conflict resolution, and anti-patterns are defined in [BUILDER.md](BUILDER.md) (Mode Detection, step 3 skill loading, Rules). Recommended sub-agent patterns and prompt examples live in [../GUIDE.md](../GUIDE.md#step-65-if-your-environment-supports-sub-agents). Prompt template for bounded workers: [templates/SUBAGENT_PROMPT_TEMPLATE.md](templates/SUBAGENT_PROMPT_TEMPLATE.md).
 
-This hierarchy eliminates ambiguity when following contradictory instructions. The Builder never silently chooses — either the hierarchy resolves it, or the human decides.
+Quick decision table:
+
+| Need | Mechanism |
+|------|-----------|
+| Reusable stack knowledge across projects | Domain profile |
+| Reusable procedure loaded on demand | Skill |
+| Isolated multi-step work or parallel execution | Sub-agent |
+| Isolated worker following a reusable procedure | Sub-agent + Skill |
 
 ## Domain profile selection contract
 
@@ -259,7 +271,7 @@ Updates happen immediately, as part of the same change that discovered the gap. 
 Do not promote one-off runner quirks, sandbox restrictions, or transient shell workarounds into the profile. Those belong in the verification log as intended/effective command evidence.
 
 **Project-specific discoveries → profile link in `framework/domains/`:**
-- Pitfalls unique to this project's context → Local Pitfalls
+- Pitfalls unique to this project's context → Local Pitfalls (using the same metadata schema as base pitfalls)
 - Gate overrides for this project → Local Overrides
 - Decisions that only apply here → Local Decision History
 
@@ -275,68 +287,16 @@ If no verification log exists, look for intent and design docs in `docs/`. If no
 
 ## Skills
 
-Skills are optional guidance documents that inform design and implementation quality without replacing the framework process or domain profiles.
+Skills are optional guidance loaded from `.github/skills/`, `.agents/skills/`, or `.claude/skills/`. Each is a `SKILL.md` with frontmatter `name`/`description`.
 
-### Where skills live
+Discovery, match rules, precedence, and boundary rules (skill vs profile authority) are defined in [BUILDER.md](BUILDER.md) step 3. See there — do not duplicate.
 
-| Location | Scope | Example |
-|----------|-------|---------|
-| `.github/skills/` | Repo-level — workflow and composition rules specific to this repository | `repo-frontend-workflow` |
-| `.agents/skills/` | Agent-level — external skills installed via tools like [skills.sh](https://skills.sh) | `frontend-design` |
+## Self-review, context pressure, debug sprints
 
-Each skill is a `SKILL.md` file with a `name` and `description` in its frontmatter.
+All three are defined canonically in [BUILDER.md](BUILDER.md):
 
-### When skills are loaded
+- **Self-Review Protocol** — adversarial re-read, automated checks, Devil's Advocate for Full, Integrity Audit, Promotion Check.
+- **Context Pressure Protocol** — artifact degradation order, compact gate format, post-compaction rules.
+- **Debug Sprint** (incl. Integration Discovery variant) — when to enter, what to prioritize, exit conditions.
 
-During Standard/Full step 3 (after domain profile, before design), the Builder scans both directories, reads each skill's `description`, and loads skills that match the task domain. For Quick tasks, a skill is loaded only if one clearly matches. Skills are recorded in the Design document.
-
-### Boundary rules
-
-- Skills inform quality (aesthetic direction, API conventions, documentation style)
-- Skills cannot override gates, skip artifacts, or replace domain profile correctness
-- If a skill contradicts the domain profile, the profile wins for technical correctness; the skill wins for domain-specific quality
-- Technical learnings (build failures, pitfalls, integration rules) go in the domain profile, not in skills
-- Process learnings (how this repo executes tasks) go in repo-level skills
-- Project-specific learnings go in `docs/`
-
-### Skills and domain profiles are independent
-
-Domain profiles do not declare which skills to use. Skills do not declare which profiles to select. The Builder evaluates each independently based on the task. This keeps both systems composable — a profile works with any combination of skills, and a skill works with any profile.
-
-## Self-review protocol
-
-After implementation, the Builder shifts to Adversary Lens:
-
-1. Re-read the Intent. Does the code deliver every Behavior? Respect every Constraint?
-2. Run every Automated Check from the domain profile (execute command, verify result)
-3. Check every Common Pitfall against the codebase
-4. Verify every Review Checklist item
-5. **Full projects only:** Devil's Advocate section (3 scenarios, weakest link, attack vector) + findings (genuine issues found, or evidence of investigation if none)
-
-## Context pressure
-
-LLM sessions have finite context windows. When context is scarce, artifacts must be prioritized:
-
-1. **Verification log Progress section** — enables resume. Always keep current.
-2. **Domain profile updates** — knowledge that survives across projects. Write immediately on discovery.
-3. **Intent document** — scope anchor. Prevents creep after compaction.
-4. **Design document** — architecture decisions. For Standard, the Intent may suffice.
-
-Passing gates may use the compact table format; failures always use the expanded format with raw output. See `templates/VERIFICATION_LOG-template.md` for both formats.
-
-After context compaction, do not regenerate artifacts already written to disk. Read the verification log and domain profile, then continue.
-
-## Debugging under runtime uncertainty
-
-When a task enters repeated runtime failure or high-churn integration debugging, the Builder may temporarily shift into a short Debug Sprint. During that sprint:
-
-- root-cause isolation and rerun loops take priority
-- the verification log stays current
-- the domain profile is updated as soon as new reusable lessons are confirmed
-- the design document may lag briefly, but must be reconciled before the phase is declared complete
-
-**Integration Discovery variant:** When a Debug Sprint is caused by integrating a dependency with undocumented, partially documented, or version-mismatched APIs, each discovered API surface or behavioral quirk is recorded in the domain profile as it is confirmed — not at the end of the sprint. The sprint ends when the integration surface is stable.
-
-The Debug Sprint ends as soon as the root cause is understood well enough to update the design, the problem is reclassified as environment/process rather than product debugging, or the reproduce/fix/verify loop is no longer the immediate bottleneck.
-
-This is not a relaxation of standards. It is a controlled way to avoid process friction during live debugging.
+This README intentionally does not restate them to avoid wording drift.

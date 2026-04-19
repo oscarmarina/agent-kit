@@ -4,15 +4,11 @@
 
 ```yaml
 extends: [profile-id]           # Profile ID from catalog/ (e.g., apps-sdk-mcp-lit-vite)
-catalog_version: 1.0.0          # Must match the Profile Version field in the catalog base profile
+catalog_version: 1.0.0          # Version of the catalog profile when this link was created
+artifact_schema_version: 1.1.0  # Version of the profile-link artifact schema
 ```
 
-> **How it works:** The Builder loads the base profile from `catalog/[extends].md` and applies the local sections below on top. Base sections not overridden here remain active.
->
-> **Version check:** When loading this link, compare `catalog_version` above against the `Profile Version` field in `catalog/[extends].md`:
-> - **Same version** → base profile is current, proceed normally.
-> - **Patch difference** (e.g., `1.0.0` vs `1.0.1`) → new pitfalls or adversary questions were added to the base. Read the additions before proceeding; update `catalog_version` here after re-verifying.
-> - **Minor or major difference** (e.g., `1.0.0` vs `1.1.0` or `2.0.0`) → verification commands or integration rules changed. Treat inherited sections as potentially stale. Re-read the full base profile and update Local Overrides if needed before writing any code. Update `catalog_version` after reconciling.
+> **How it works:** The Builder loads the base profile from `catalog/[extends].md` and applies the local sections below on top. Base sections not overridden here remain active. To check if your base is outdated, compare `catalog_version` against the current profile.
 
 ---
 
@@ -21,11 +17,15 @@ catalog_version: 1.0.0          # Must match the Profile Version field in the ca
 Project-specific pitfalls discovered during implementation. These do NOT exist in the base profile — they are unique to this project's context.
 
 ### Pitfall L1: [Name]
+- **Severity:** [critical / major / minor]
+- **Occurrence count:** [number — starts at 1 when first documented]
+- **Confidence:** [confirmed / inferred / heuristic]
+- **Source:** [e.g., `docs/[project]-verification.md → Gate 3 FAILED 2026-04-16` | `Design review YYYY-MM-DD`]
 - **What goes wrong:** [Description]
 - **Correct approach:** [How to do it right]
 - **Detection:** [Search pattern or verification step]
 
-*(Add as many as needed. Each one is a candidate for contributing back to the catalog profile.)*
+*(Add as many as needed. Use the same pitfall metadata as standalone/base profiles so Integrity Audit, promotion checks, and traceability work on profile links too.)*
 
 ## Local Adversary Questions
 
@@ -42,6 +42,8 @@ Overrides should describe real project-level differences, not temporary runner w
 ### Verification Commands (overrides)
 
 Only include gates that differ from the base profile.
+
+Commands are written relative to the **project code root** unless the command text explicitly says otherwise.
 
 **GATE 3 (Tests):**
 - Command: `[e.g., npm test -- --project=widget]`

@@ -2,6 +2,8 @@
 
 A process framework for LLM-assisted software development. Works with any LLM and any technology stack.
 
+Framework releases and artifact schemas are versioned separately. `framework/VERSION` identifies the framework release; `framework/ARTIFACT_SCHEMA_VERSION` identifies the artifact contract expected by the templates and audits.
+
 ## The problem
 
 LLMs make the same mistakes across projects. They skip verification, forget past lessons, lose context between sessions, and build confidently on wrong assumptions. Each new conversation starts from zero — even when the same stack was used yesterday.
@@ -160,7 +162,7 @@ They also travel. Copy `framework/` along with the relevant base profiles from `
 
 ## Verification: proof over claims
 
-LLMs are confident. They will tell you "everything works" when it doesn't. The framework addresses this with an adversarial loop — mandatory checkpoints where the GateKeeper runs a real command against the Builder's code, pastes the real output, and records it in the verification log.
+LLMs are confident. They will tell you "everything works" when it doesn't. The framework addresses this with an adversarial loop — mandatory checkpoints where the GateKeeper runs a real command against the Builder's code and records real execution evidence in the verification log.
 
 "Assumed to pass" is never valid evidence. If the output isn't in the log, it didn't happen.
 
@@ -181,6 +183,29 @@ These aren't bureaucracy. They exist because LLMs lose context. The Intent preve
 ## Execution models
 
 The framework supports **single-agent** (one LLM, both roles) and **dual-agent** (separate Builder and GateKeeper). In orchestrated environments with sub-agents, the orchestrator owns all artifacts and process state; Builder and GateKeeper become delegated roles. GateKeeper maps cleanly to a dedicated sub-agent (defined inputs, structured output, no code edits). Builder works better as a role the orchestrator executes or delegates per phase, not as a permanent sub-agent.
+
+### Sub-agents inside the framework
+
+Sub-agents are an **execution pattern**, not a replacement for framework artifacts.
+
+- The **orchestrator** owns the Intent, Design, Verification Log, phase transitions, and final decisions.
+- A **sub-agent** performs isolated work and returns a scoped result: research findings, codebase survey, dependency/API analysis, gate output, or review findings.
+- The orchestrator decides what becomes durable framework state. Sub-agents do not become independent sources of truth.
+
+This keeps the audit trail centralized while still allowing context isolation, specialization, model routing, and parallel work.
+
+### Skills vs Sub-agents vs Domain Profiles
+
+- **Domain profiles** are stack memory. They encode reusable pitfalls, adversary questions, verification commands, and integration rules across projects.
+- **Skills** are reusable instructions loaded on demand. They define procedures, conventions, or workflows without owning process state.
+- **Sub-agents** are isolated workers invoked at runtime. They isolate context, specialize tools/models, and return results to the orchestrator.
+
+Use:
+
+- **Domain profile** when the knowledge should persist across projects on the same stack.
+- **Skill** when the capability is procedural and should be progressively disclosed from disk.
+- **Sub-agent** when the work itself should be delegated into an isolated context.
+- **Both** when a sub-agent should execute a procedure defined by a skill.
 
 ## LLM compatibility
 

@@ -1,5 +1,6 @@
 # Design: [Project Name]
 
+**Artifact Schema Version:** 1.1.0
 **Intent:** docs/[project]-intent.md
 **Domain Profile:** framework/domains/[profile].md
 **Date:** [Date]
@@ -98,6 +99,15 @@ Every significant architectural choice, with rationale and rejected alternatives
 |---|----------|--------|------------------------|-----------|
 | 1 | [e.g., State management] | [Signals] | [RxJS BehaviorSubjects, NgRx] | [Simpler for single-component state at this scale] |
 | 2 | [e.g., DOM rendering] | [Light DOM] | [Shadow DOM] | [CSS custom properties need to cascade to child elements] |
+
+## ADR Summary
+
+*(Required for Full projects. Use one ADR row per major architectural decision. Standard projects may omit this section if no Design document is produced.)*
+
+| ADR | Status | Decision | Why it exists |
+|-----|--------|----------|---------------|
+| ADR-001 | [Accepted / Superseded / Revised] | [Short decision title] | [Why this needed a durable record beyond the generic decisions table] |
+| ADR-002 | [Accepted / Superseded / Revised] | [Short decision title] | [What tradeoff or constraint it preserves for future work] |
 
 ## Risks (Adversary Lens)
 

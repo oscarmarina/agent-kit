@@ -1,5 +1,6 @@
 # Domain Profile: [Domain - Stack]
 
+**Artifact Schema Version:** 1.1.0
 **Domain:** [e.g., Web Frontend, PLC/Industrial Automation, Embedded Systems, Backend Services, Mobile]
 **Stack:** [e.g., Angular + Lit, Siemens TIA Portal SCL, STM32 + FreeRTOS, Python FastAPI, React Native]
 **Standards:** [e.g., IEC 61131-3, MISRA C, OWASP Top 10, WCAG 2.1]
@@ -7,6 +8,9 @@
 ## Selection Metadata (Operational Contract)
 
 **Profile ID:** [unique id, usually filename without `.md`; e.g., `web-angular-lit`]
+**Profile Version:** 1.0.0
+<!-- Bump when pitfalls, commands, or overrides change. Profile links record this as `catalog_version` to detect drift. Use semver: patch = typo/clarification, minor = additive (new pitfall), major = breaking (renamed/removed field). -->
+
 **Match Keywords:** [comma-separated terms used for routing; e.g., `angular, lit, web components, vite`]
 **Use When:** [one sentence describing when this profile SHOULD be selected]
 **Do Not Use When:** [one sentence describing when this profile MUST NOT be selected]
@@ -29,6 +33,8 @@ Map generic framework terms to domain-specific terms:
 ## Verification Commands
 
 Exact commands for each Verification Gate. These override any generic assumptions.
+
+Unless a command explicitly says otherwise, write and execute these commands relative to the **project code root** (the directory that contains the project's `package.json`, build files, source tree, or equivalent entrypoint) rather than the framework repo root.
 
 Only record command forms that are expected to be reusable for this stack or its real target operating environments. Do not encode one-off runner quirks, sandbox restrictions, or transient shell workarounds here; those belong in the verification log as intended/effective command evidence.
 

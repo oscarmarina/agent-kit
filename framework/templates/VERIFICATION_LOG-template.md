@@ -1,5 +1,7 @@
 # Verification Log: [Project Name]
 
+**Artifact Schema Version:** 1.1.0
+
 This log captures the actual output of every verification gate. It is the source of truth for project completion status.
 
 **Rule:** No entry may be written without executing the command and pasting real output. "Assumed to pass" is not an entry.

@@ -4,9 +4,9 @@ Community-contributed domain profiles for Agent Kit. Each profile captures stack
 
 ## Available Profiles
 
-| Profile | Stack | Pitfalls | Adversary Qs |
-|---------|-------|----------|--------------|
-| [apps-sdk-mcp-lit-vite](apps-sdk-mcp-lit-vite.md) | MCP Apps + Lit + Vite + TypeScript | 11 | 7 |
+| Profile | Version | Stack | Pitfalls | Adversary Qs |
+|---------|---------|-------|----------|--------------|
+| [apps-sdk-mcp-lit-vite](apps-sdk-mcp-lit-vite.md) | 1.0.0 | MCP Apps + Lit + Vite + TypeScript | 11 | 7 |
 
 ## Using a profile
 
@@ -68,6 +68,15 @@ If all three are yes → promote. If any is no → keep local, add a one-line no
 ### Example
 
 A project using the `apps-sdk-mcp-lit-vite` stack encounters a new pitfall with `severity: critical`. The GateKeeper adds it to the local profile with `<!-- catalog candidate: critical severity -->`. During Self-Review, the Builder runs the portability test: it is stack-wide, the Detection command uses only generic `src/` paths, and the fix applies to any MCP widget project. All three pass → the pitfall moves to `catalog/apps-sdk-mcp-lit-vite.md` and the local profile gets a reference note. The Verification Log records the promotion.
+
+### Legacy traceability policy
+
+Some early catalog entries may predate the current traceability standard. Those entries are allowed to remain in the catalog only if they are marked honestly:
+
+- Use `Confidence: inferred`, not `confirmed`, when the underlying failure was real but the exact verification-log section was not preserved.
+- Keep the `Source` field explicit about the legacy/pre-traceability origin.
+- Upgrade an entry to `confirmed` only after a later project records the same failure with an exact verification-log reference.
+- Update `Last Verified` whenever you normalize or re-audit a legacy profile.
 
 ## Contributing a profile
 
