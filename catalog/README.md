@@ -35,14 +35,22 @@ Pitfalls start their life in a project's local profile link (`framework/domains/
 
 ### Promotion triggers
 
-A pitfall becomes a **catalog candidate** when it meets either criterion:
+A pitfall becomes a **catalog candidate** when it meets the baseline requirement **and** one of the trigger criteria:
+
+**Baseline (required for any promotion):**
+
+| Requirement | Rationale |
+|---|---|
+| `Confidence: confirmed` with a `Source:` pointing to a verification-log failure | Only runtime-proven failures graduate to the catalog. `inferred` and `heuristic` pitfalls — including those sourced from prompts, design reviews, or preventive knowledge — are not promotion-eligible, regardless of severity or count. |
+
+**Trigger (at least one, on top of baseline):**
 
 | Criterion | Threshold | Rationale |
 |-----------|-----------|-----------|
 | `occurrence_count` | `>= 3` across different projects | Three independent hits confirm the trap is stack-level, not a one-off |
-| `severity: critical` | First occurrence | Data loss, silent wrong behavior, or security failures warrant immediate promotion candidacy |
+| `severity: critical` + `Confidence: confirmed` | First runtime detection | Data loss, silent wrong behavior, or security failures warrant immediate candidacy — but only after a real gate proves the failure, not merely a prompt asserting it |
 
-The GateKeeper flags `critical` pitfalls with `<!-- catalog candidate: critical severity -->` on detection. The Builder evaluates all candidates during the Promotion Check (step 7 of `framework/BUILDER.md`), run right after Self-Review (step 6).
+The GateKeeper flags `critical` pitfalls with `<!-- catalog candidate: critical severity -->` on detection (runtime only). The Builder evaluates all candidates during the Promotion Check (step 7 of `framework/BUILDER.md`), run right after Self-Review (step 6).
 
 ### Portability test (three questions)
 

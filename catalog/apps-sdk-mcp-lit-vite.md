@@ -32,24 +32,29 @@
 
 **GATE 0 (Dependencies):**
 - Command: `npm install`
+- Type: automated
 - Expected output: lockfile created or updated, exit code 0, no unresolved dependency errors
 
 **GATE 1 (Scaffold):**
 - Command: `npm run build`
+- Type: automated
 - Expected output: TypeScript server build succeeds, Vite outputs widget assets with stable names (`assets/index.js`), `dist/` exists
 
 **GATE 2 (Feature):**
 - Command: `npm run build && npm test`
+- Type: automated
 - Expected output: build passes, server tests (node) and widget tests (browser) pass with no regressions
 
 **GATE 3 (Tests):**
 - Command: `npm test`
+- Type: automated
 - Expected output: all tests pass across both projects (server + widget)
 - Coverage command: `npm test -- --coverage`
 
 **GATE 4 (Final):**
 - Clean command (POSIX): `rm -rf dist node_modules && npm install && npm run build && npm test`
 - Clean command (PowerShell): `if (Test-Path dist) { Remove-Item dist -Recurse -Force }; if (Test-Path node_modules) { Remove-Item node_modules -Recurse -Force }; npm install; npm run build; npm test`
+- Type: automated
 - Expected output: clean install, build, and tests all pass from scratch
 
 ## Common Pitfalls

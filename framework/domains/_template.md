@@ -20,7 +20,8 @@ Project-specific pitfalls discovered during implementation. These do NOT exist i
 - **Severity:** [critical / major / minor]
 - **Occurrence count:** [number — starts at 1 when first documented]
 - **Confidence:** [confirmed / inferred / heuristic]
-- **Source:** [e.g., `docs/[project]-verification.md → Gate 3 FAILED 2026-04-16` | `Design review YYYY-MM-DD`]
+- **Source:** [e.g., `docs/[project]-verification.md → Gate 3 FAILED 2026-04-16` (confirmed) | `Design review YYYY-MM-DD` (inferred) | `Prompt constraint YYYY-MM-DD` (heuristic)]
+  <!-- Source type must match Confidence. Only `confirmed` + verification-log Source is promotion-eligible. See `framework/templates/DOMAIN_PROFILE-template.md` for full rules. -->
 - **What goes wrong:** [Description]
 - **Correct approach:** [How to do it right]
 - **Detection:** [Search pattern or verification step]
@@ -46,8 +47,11 @@ Only include gates that differ from the base profile.
 Commands are written relative to the **project code root** unless the command text explicitly says otherwise.
 
 **GATE 3 (Tests):**
+- Type: `[automated | manual | requires-proprietary-tooling]`
 - Command: `[e.g., npm test -- --project=widget]`
 - Expected output: [what success looks like]
+
+<!-- Type field controls Evidence State mapping. See base profile or framework/templates/DOMAIN_PROFILE-template.md for definitions. -->
 
 ### Integration Rules (overrides)
 

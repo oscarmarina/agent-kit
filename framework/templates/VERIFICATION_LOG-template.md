@@ -10,6 +10,12 @@ This log captures the actual output of every verification gate. It is the source
 
 **Format:** This template provides both **compact** and **expanded** gate formats. Use compact for passing gates; use expanded for failures (where raw output has diagnostic value). See Context Pressure Protocol in BUILDER.md.
 
+**Two taxonomies, one log:**
+- **Gate rows** (compact and expanded) record execution events — `PASS` / `FAIL` / `BLOCKED`. A gate either ran cleanly, rejected, or could not be executed faithfully. No Evidence State goes here.
+- **Self-Review tables** (Domain Checklist, Review Checklist, Pitfall Applicability) record *claims about the system* — `Verified` / `Provisional` / `Blocked` per `BUILDER.md → Evidence States`. A claim is `Verified` only when its `Evidence` column points at a resoluble Source (a gate row above, a file path, or a captured command output).
+
+A `PASS` gate is what lets a dependent claim move from Provisional to Verified. The gate row is the Source; it is not itself Verified.
+
 ---
 
 ## Progress
@@ -166,16 +172,23 @@ This log captures the actual output of every verification gate. It is the source
 ### Domain Checklist Results
 [Run every Automated Check from the domain profile. Paste command + result.]
 
-| Check | Command | Result | Pass? |
-|-------|---------|--------|-------|
-| [e.g., No attr binding] | `[command]` | [what was found] | [YES/NO] |
+| Check | Command | Result | Status |
+|-------|---------|--------|--------|
+| [e.g., No attr binding] | `[command]` | [what was found] | [Verified / Provisional / Blocked] |
 
 ### Review Checklist
-[Verify every Common Pitfall against the codebase. Record result.]
+[One row per item from the domain profile's Review Checklist. Apply Evidence State rules from BUILDER.md → Evidence States: `Verified` requires a resoluble Source (not just a review statement); "manual review" or a Blocked dependency gate forces `Provisional`.]
 
-| Pitfall | Applies? | Verified? |
-|---------|----------|-----------|
-| [Profile pitfall] | [Yes/No] | [YES — how / NO — why not] |
+| Item | Applies? | Status | Evidence |
+|------|----------|--------|----------|
+| [Profile checklist item] | [Yes / No / N/A] | [Verified / Provisional / Blocked] | [`docs/[project]-verification.md → Gate 2 PASS` / `src/path/file.ts:42` / "manual review — no runtime evidence, depends on Gate 3 which is Blocked"] |
+
+### Pitfall Applicability
+[One row per Common Pitfall in the active domain profile. Same Evidence State rules apply.]
+
+| Pitfall | Applies? | Status | Evidence |
+|---------|----------|--------|----------|
+| [Profile pitfall name] | [Yes / No] | [Verified / Provisional / Blocked] | [Source pointer or "manual review"] |
 
 ### Devil's Advocate (Full projects only)
 1. **What happens when:** [scenario 1], [scenario 2], [scenario 3]

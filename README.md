@@ -1,5 +1,7 @@
 # Agent Kit
 
+> **Non-normative view.** This document explains the framework for humans. Operational truth — the rules agents must follow — lives in [`framework/BUILDER.md`](framework/BUILDER.md) and [`framework/GATEKEEPER.md`](framework/GATEKEEPER.md). If this page disagrees with either, those files win.
+
 A process framework for LLM-assisted software development. Works with any LLM and any technology stack.
 
 Framework releases and artifact schemas are versioned separately. `framework/VERSION` identifies the framework release; `framework/ARTIFACT_SCHEMA_VERSION` identifies the artifact contract expected by the templates and audits.

@@ -1,5 +1,7 @@
 # Agent Kit — LLM Context
 
+> **Non-normative view.** This file summarizes the framework for IDE assistants working on the Agent Kit repo itself. Operational truth — the rules agents must follow when building projects — lives in `framework/BUILDER.md` and `framework/GATEKEEPER.md`. If this file disagrees with either, those files win.
+
 This repository **is** the Agent Kit framework. It is not a project built with the framework — it is the framework itself.
 
 ## What this repository contains
@@ -42,7 +44,8 @@ When someone copies `framework/` into their own repository and points `AGENTS.md
 ## Framework concepts
 
 - **Domain profiles** accumulate stack knowledge (pitfalls, adversary questions, checks, decisions) across projects
-- **Gates** (0-4) are verification checkpoints with real command output — "assumed to pass" is never valid
+- **Evidence States** (`Verified` / `Provisional` / `Blocked`) tag every claim in design, review checklist, and pitfall applicability tables — `Verified` requires a resoluble `Source:`; `Provisional` is the honest default. Defense against artifact laundering.
+- **Gates** (0-4) are verification checkpoints with real command output — "assumed to pass" is never valid. Gate execution uses `PASS` / `FAIL` / `BLOCKED` — a separate taxonomy that claims cite as Source.
 - **Four lenses**: User, Architecture, Adversary, Domain — thinking modes, not sequential phases
 - **Anti-Loop Rule**: produce the Intent document before continuing to investigate
 - **Pre-code checkpoint** (step 4): 4 questions inlined into the process before any code

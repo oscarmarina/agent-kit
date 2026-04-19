@@ -1,5 +1,7 @@
 # Agent Instructions
 
+**Normative surface:** `framework/BUILDER.md` and `framework/GATEKEEPER.md` are the only operational sources of truth. All other docs (`README.md`, `GUIDE.md`, `framework/README.md`, `.github/copilot-instructions.md`, `catalog/README.md`) are derived views for humans. If they disagree with BUILDER or GATEKEEPER, those files win.
+
 **Activation:** Before writing any code, determine project size (Quick / Standard / Full) and state it explicitly. This is the activation signal — if you skip it, the framework is not active.
 
 ## Reading order

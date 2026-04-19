@@ -62,9 +62,11 @@ Key choices made by the human or agreed during design discussion.
 
 ## Domain Pitfalls Applied
 
-| Pitfall | Applies? | How Addressed |
-|---------|----------|---------------|
-| [Profile pitfall name] | [Yes/No] | [How this design handles it, or why it doesn't apply] |
+[Each row needs `Status` + `Evidence` per `BUILDER.md → Evidence States`. At intent time most rows are `Provisional` — they become `Verified` when the verification log cites a gate output or file path as Source.]
+
+| Pitfall | Applies? | How Addressed | Status | Evidence |
+|---------|----------|---------------|--------|----------|
+| [Profile pitfall name] | [Yes/No] | [How this design handles it, or why it doesn't apply] | [Provisional / Verified / Blocked] | [Source pointer or "manual review — Verified after Gate N"] |
 
 **If no domain profile is loaded yet, write "No profile loaded — will be created during this project."**
 

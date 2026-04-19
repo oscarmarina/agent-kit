@@ -27,12 +27,12 @@ Document why this profile was selected so routing is auditable and repeatable.
 
 ## Design Status
 
-[Use this section when runtime behavior may invalidate early assumptions. Mark sections, decisions, or assumptions as Provisional, Verified, or Revised After Runtime Validation. If the design is fully stable before implementation, write "All sections currently provisional until runtime verification" or explain why explicit markers are unnecessary.]
+[Use this section when runtime behavior or environment constraints may invalidate early assumptions. Mark sections, decisions, or assumptions as `Provisional`, `Verified`, or `Blocked` per `BUILDER.md -> Evidence States`. Use `Revised After Runtime Validation` only when runtime evidence forced a design change after the original decision. If the design is fully stable before implementation, write "All sections currently provisional until runtime verification" or explain why explicit markers are unnecessary.]
 
 | Item | Status | Evidence / Trigger |
 |------|--------|--------------------|
-| [e.g., worker loading strategy] | [Provisional / Verified / Revised After Runtime Validation] | [e.g., pending runtime validation, verified by Gate 3, revised after browser test failure] |
-| [e.g., thumbnail generation strategy] | [Provisional / Verified / Revised After Runtime Validation] | [e.g., design decision only, verified by stress test, changed after memory issue] |
+| [e.g., worker loading strategy] | [Provisional / Verified / Blocked / Revised After Runtime Validation] | [e.g., pending runtime validation, verified by Gate 3, blocked by unavailable vendor simulator, revised after browser test failure] |
+| [e.g., thumbnail generation strategy] | [Provisional / Verified / Blocked / Revised After Runtime Validation] | [e.g., design decision only, verified by stress test, blocked pending hardware rig, changed after memory issue] |
 
 ## Research Summary
 
@@ -134,14 +134,14 @@ Identified BEFORE implementation. Each risk has impact assessment and mitigation
 
 > **CRITICAL:** Do not omit this section. Every pitfall from the domain profile must be evaluated against this design — even if the answer is "does not apply." Silent omission is the most common audit failure.
 
-[For each relevant pitfall from the domain profile: which ones apply and how this design addresses them.]
+[For each relevant pitfall from the domain profile: which ones apply, how this design addresses them, and the Evidence State of that claim. See `BUILDER.md → Evidence States` for the rules. At design time most rows are `Provisional` — they become `Verified` only when the verification log cites a gate output or runtime trace as Source.]
 
-| Pitfall | Applies? | How Addressed |
-|---------|----------|---------------|
-| [Attribute binding for non-strings] | Yes | [All Lit bindings use property binding `[prop]="expr"`] |
-| [zone.js import order] | Yes | [First import in main.ts, before any Angular code] |
-| [Angular compiler scope] | Yes | [`include: ['src/app/**/*.ts']` excludes Lit files] |
-| [jsdom for Web Components] | Yes | [Vitest browser mode with playwright, no jsdom] |
+| Pitfall | Applies? | How Addressed | Status | Evidence |
+|---------|----------|---------------|--------|----------|
+| [Attribute binding for non-strings] | Yes | [All Lit bindings use property binding `[prop]="expr"`] | Provisional | [Structural review only — Verified after Gate 2 executes widget tests] |
+| [zone.js import order] | Yes | [First import in main.ts, before any Angular code] | Provisional | [To verify at Gate 1 via build output] |
+| [Angular compiler scope] | Yes | [`include: ['src/app/**/*.ts']` excludes Lit files] | Provisional | [Config review; Verified once Gate 1 passes] |
+| [jsdom for Web Components] | No | [Not applicable — Vitest browser mode with playwright] | Verified | [vitest.config.ts:12 — `browser: { enabled: true, provider: 'playwright' }`] |
 
 ## Verification
 

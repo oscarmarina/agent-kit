@@ -211,6 +211,14 @@ Use sub-agents for context isolation, specialization, or parallel work. Use skil
 
 Some domains (PLC, hardware, documentation) lack command-line builds. The domain profile MUST define equivalent verification. If no automated verification exists, the gate requires a MANUAL VERIFICATION CHECKLIST where each item is checked and annotated with what was observed.
 
+Each gate command in the domain profile carries a `Type` field (`automated` / `manual` / `requires-proprietary-tooling`) that controls two things: the expected gate-row behavior (`PASS` / `FAIL` / `BLOCKED`) and what kind of evidence dependent claims may cite from that gate:
+
+- `automated` → gate row is `PASS` on exit 0, `FAIL` otherwise; claims that cite the passing gate may be marked `Verified` if they also meet the Source and Detection rules below
+- `manual` → gate row is `PASS` only when a human sign-off entry with observed output is recorded in the verification log; otherwise it remains `FAIL` or `BLOCKED`; dependent claims stay `Provisional` until that sign-off exists
+- `requires-proprietary-tooling` → if the tooling is present and runs, follow the `automated` or `manual` rule that matches the real procedure; if the tooling is absent, the gate row is `BLOCKED` with the intended/effective command triad, and dependent claims cannot become `Verified` in that session
+
+A gate marked `manual` or `requires-proprietary-tooling` cannot silently upgrade dependent claims to `Verified` — the agent must either attach human sign-off/runtime evidence or leave those claims `Provisional`/`Blocked`.
+
 ## Domain Profiles
 
 Domain profiles are the learning mechanism. They accumulate knowledge across projects with the same stack. They are the most valuable artifact in this framework.
@@ -278,6 +286,39 @@ Every domain profile has a **Last Verified** field in its Selection Metadata. Th
 - Before trusting a pitfall, integration rule, or automated check that references specific files, functions, or paths — verify that the referenced artifact still exists. A profile entry that names a deleted function is worse than no entry.
 - If the profile is stale (Last Verified > 30 days or > 2 major changes ago), run the Automated Checks before relying on them. Update or remove entries that no longer apply.
 
+## Evidence States
+
+Every claim in every artifact (design decision, pitfall application, review checklist item, checklist result) carries one of three states. This is the framework's defense against artifact laundering — producing impeccable documentation without substantive validation.
+
+**Verified**
+- Requires a `Source:` pointer to something that exists: a verification log line ("Gate 2 PASS 2026-04-19"), a file path, or a runtime command output.
+- Requires the Detection command (from the profile pitfall or review checklist) to have been **executed**, with output captured in the verification log.
+- A review-only justification ("command arbitration remains inside FBs") is **not** sufficient to mark Verified. Structural plausibility is Provisional.
+
+**Provisional** (the honest default)
+- Current best claim, **not yet validated by runtime or trace evidence.**
+- Use when: review-based reasoning only, Detection is "manual review", runtime unavailable, or evidence not yet produced.
+- Provisional is **not a failure**. It is the correct label for honest incompleteness. Prefer Provisional over Verified whenever there is doubt.
+
+**Blocked**
+- Verification cannot be produced in this environment (toolchain absent, proprietary simulator, hardware required).
+- Requires the `Intended command / Effective command / Substitution reason` triad in the verification log.
+- A pitfall whose Detection requires a Blocked gate **cannot** be marked Verified in the same session — it is Provisional (or Blocked if the Detection itself is what's blocked).
+
+### Hard rule: blocked-gate dependency
+
+If Gate 3 or Gate 4 is `Blocked`, every pitfall and review checklist item whose Detection depends on that gate's tooling **must** be `Provisional` or `Blocked`, never `Verified`. Marking structural review as runtime verification is the exact failure mode this state machine prevents.
+
+### Where these states apply
+
+- Design document sections and decisions
+- Review Checklist items (Self-Review Protocol step 4)
+- Pitfall applicability in Design's "Domain Pitfalls Applied" and verification log's Review Checklist
+
+**Gate rows in the verification log are not Evidence States.** Gate execution is a mechanical event with `PASS` / `FAIL` / `BLOCKED` semantics — a gate either ran cleanly, rejected, or could not be faithfully executed. Evidence States describe *claims about the system* (design decisions, pitfall coverage, checklist items) that *cite* gate results as their Source. A `PASS` gate is what lets a dependent claim move from Provisional to Verified; the gate row itself records the raw outcome.
+
+GateKeeper, when a dependent claim asks "is this Verified?", applies the same rule: no `Verified` without a resoluble Source pointing at a real gate row, file path, or command output.
+
 ## Artifacts
 
 ### Change Intent Record (`docs/[project]-intent.md`)
@@ -293,13 +334,7 @@ Key sections:
 ### Design Document (`docs/[project]-design.md`)
 Architecture + decisions + risks + domain profile selection rationale in one document. Replaces separate PRD, Tech Spec, Review, and Implementation Plan. **Required for Full projects; optional for Standard** (see Standard step 5). Template: `framework/templates/DESIGN.md`
 
-The design document may mark sections or decisions as one of:
-
-- **Provisional** — current best plan, not yet validated by runtime behavior
-- **Verified** — checked against implementation/runtime evidence
-- **Revised After Runtime Validation** — changed because reality contradicted the initial design
-
-Use these markers to reduce false certainty during integration-heavy work.
+Design sections and decisions carry the Evidence States defined above (`Verified` / `Provisional` / `Blocked`). One additional Design-only marker: **Revised After Runtime Validation** — use when a section changed because runtime contradicted the initial design.
 
 ### Verification Log (`docs/[project]-verification.md`)
 Mechanical proof. Every gate execution with real output. Source of truth for "does it work?" and "where did we stop?". One file per project — completed logs remain as historical evidence. Template: `framework/templates/VERIFICATION_LOG-template.md`
@@ -326,15 +361,15 @@ After implementation, shift to Adversary Lens:
 
 1. Re-read the Intent. Does the code deliver every Behavior described? Does it respect every Constraint?
 2. Run every Automated Check from the domain profile (execute command, verify result)
-3. Check every Common Pitfall from the domain profile against the codebase
-4. Verify every Review Checklist item
+3. Check every Common Pitfall from the domain profile against the codebase. Mark each with an Evidence State (`Verified` / `Provisional` / `Blocked`) per the rules in the Evidence States section. If the pitfall's Detection is "manual review" or depends on a Blocked gate, it is Provisional — not Verified.
+4. Verify every Review Checklist item with the same Evidence State discipline. Structural plausibility without a resoluble Source is Provisional.
 5. **For Full projects only:** add to the verification log:
    - Devil's Advocate section (3 uncovered scenarios, weakest link, attack vector)
    - Findings section: list any genuine vulnerabilities or logic flaws found. If none are found, document the most critical attack vectors you investigated and explain why they are not exploitable in this design. Do not fabricate findings to meet a quota — honest "checked X, found nothing" is more valuable than invented issues.
 6. **Profile Integrity Audit (Full — mandatory; all sizes — when explicitly requested):** Run the Profile Integrity Audit (see section below) before evaluating promotion candidates. Stale and redundant pitfalls must be resolved before promotion — promoting a stale entry is worse than not promoting it. Write one summary line in the Verification Log's Domain Profile Updates section: `"Integrity Audit: N stale, M redundant, K heuristic reviewed. [Actions taken.]"` even if all results are zero.
-7. **Promotion check (all sizes):** Scan the active domain profile for pitfalls that meet either promotion criterion:
-   - `occurrence_count >= 3` — seen enough times across projects to be a confirmed stack-level trap
-   - `severity: critical` — first occurrence is sufficient evidence for catalog candidacy
+7. **Promotion check (all sizes):** Scan the active domain profile for pitfalls that meet **all** these criteria:
+   - `Confidence: confirmed` — the pitfall has a `Source:` pointing to a real verification-log failure. `inferred` and `heuristic` pitfalls never promote, regardless of count or severity.
+   - Either `occurrence_count >= 3` across different projects (confirmed stack-level trap), **or** `severity: critical` with `Confidence: confirmed` from first runtime detection (a critical pitfall sourced only from a prompt constraint is still `heuristic` and does not qualify).
 
    For each candidate, answer the portability test:
    - Is this failure stack-wide, not tied to this project's specific architecture or data?

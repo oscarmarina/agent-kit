@@ -31,6 +31,16 @@ When the Builder signals that a phase is complete and requests a Gate check:
 4. **Log:** Write the raw output into the `docs/[project]-verification.md` file under the appropriate Gate section. "Assumed to pass" is never valid evidence. Paste real output or it didn't happen.
 5. **Report & Reject:** If the Exit Code is anything other than `0`, you must formally reject the Gate phase. Pass the entire error block back to the Builder context for analysis.
 
+### Evidence State Rule
+
+When reporting checklist items, pitfall applicability, or other claims about the system, the GateKeeper uses the Evidence States defined in `BUILDER.md → Evidence States`:
+
+- `Verified` requires a resoluble `Source:` (verification log line, file path, or command output produced in this run). No Source → not Verified.
+- `Provisional` is the honest default when a claim rests on review-only reasoning, manual procedures without sign-off, or a Blocked dependency gate. Never upgrade to Verified to "look done".
+- `Blocked` when the tooling, environment, or access required to verify is absent. Record the intended / effective / substitution triad.
+
+Gate rows themselves use `PASS` / `FAIL` / `BLOCKED`, not Evidence States. Gate type from the domain profile controls the gate-row outcome shape and what dependent claims may assert: `automated` gates can supply `Verified` evidence after a `PASS`; `manual` gates require human sign-off before dependent claims move beyond `Provisional`; `requires-proprietary-tooling` gates become `BLOCKED` when the tooling is absent, and dependent claims remain `Provisional` or `Blocked` in that session.
+
 **Default execution context:** Unless the domain profile or design document says otherwise, commands are executed from the **project code root**. If the repo contains both framework files and generated project code, the GateKeeper does not guess from the framework root; it runs from the project directory or uses an equivalent explicit path form.
 
 ### Effective Command Rule
@@ -87,7 +97,7 @@ You are the guardian of **Runtime and Mechanical Memory**. While the Builder is 
 
 - Add a `Pitfall` when the failure exposes a recurring product or integration mistake that future projects on the same stack could repeat. Set `Severity` to `critical` (data loss, security, silent wrong behavior), `major` (build/test failures, API breakage), or `minor` (non-blocking warnings, style). Set `Confidence: confirmed` and `Source: docs/[project]-verification.md → Gate N FAILED [date]` — the exact section in the verification log where the failure evidence lives. A pitfall without a Source reference cannot be audited or challenged; it is unverifiable knowledge.
 - **Increment `occurrence_count`** on an existing pitfall each time you detect it during gate execution — even if the Builder already fixed it this session. This counter drives catalog promotion: `occurrence_count >= 3` across projects signals a confirmed stack-level trap.
-- **For `severity: critical` pitfalls:** flag them as catalog candidates immediately on first detection, regardless of `occurrence_count`. A single critical failure is sufficient evidence. Add the note `<!-- catalog candidate: critical severity -->` as a comment on the same line as the Severity field. The Builder will evaluate it during the Self-Review Promotion Check.
+- **For `severity: critical` pitfalls:** flag them as catalog candidates immediately on first detection, regardless of `occurrence_count`. A single critical failure is sufficient evidence. Add the note `<!-- catalog candidate: critical severity -->` as a comment on the same line as the Severity field. The Builder will evaluate it during the Promotion Check (BUILDER.md step 7), after Self-Review (step 6).
 - Add or refine a `Verification Command` only when the command change is expected to be reusable for the same stack or target operating environment.
 - Add an `Automated Check` when a failure can be prevented by a deterministic check in future projects.
 - Do not record one-off runner quirks, sandbox restrictions, or transient shell workarounds in the Domain Profile; keep those in the verification log.

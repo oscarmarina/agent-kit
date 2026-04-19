@@ -1,5 +1,7 @@
 # Tutorial: Your first project with Agent Kit
 
+> **Non-normative view.** This tutorial walks humans through a first project. Operational truth — the rules agents must follow — lives in [`framework/BUILDER.md`](framework/BUILDER.md) and [`framework/GATEKEEPER.md`](framework/GATEKEEPER.md). If this page disagrees with either, those files win.
+
 In this tutorial, we will set up Agent Kit in a new repository and use it to build a project with an LLM. By the end, you will have seen the full cycle: prompt, intent, design, gated build, and a domain profile that captures what the LLM learned.
 
 ## What we need

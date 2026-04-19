@@ -1,5 +1,7 @@
 # Agent Kit — Reference
 
+> **Non-normative view.** Reference index for humans. Operational truth for agents lives in `BUILDER.md` and `GATEKEEPER.md`. If this page disagrees with either, those files win.
+
 ## Contents
 
 | File | Purpose |
@@ -165,17 +167,15 @@ Architecture + decisions + risks. **Required for Full; optional for Standard** (
 | ADR Summary | Durable record of major Full-project architecture decisions |
 | Risks | Identified before implementation (Adversary Lens) |
 | Adversary Questions Applied | Every profile adversary question answered against this design |
-| Domain Pitfalls Applied | How each profile pitfall is addressed |
+| Domain Pitfalls Applied | How each profile pitfall is addressed — each row carries an Evidence State (see below) |
 | Verification | Gate commands and pass criteria |
 | Test Strategy | What to test, how, coverage target, what not to test |
 
 Adversary Questions Applied and Domain Pitfalls Applied are separate mandatory sections. Checking pitfalls does not replace answering adversary questions — they serve different purposes.
 
-For integration-heavy work, the design may explicitly mark sections or decisions as:
+Claims across the framework (design decisions, pitfall applicability, review checklist items) carry one of three **Evidence States** — `Verified`, `Provisional`, `Blocked`. `Verified` requires a resoluble `Source:` pointer; `Provisional` is the honest default for review-only reasoning; `Blocked` is used when the tooling needed to verify is absent. Canonical definitions live in [BUILDER.md](BUILDER.md) → Evidence States. Design sections may additionally be marked **Revised After Runtime Validation** when runtime contradicted the initial plan.
 
-- **Provisional** — current best plan, not yet validated by runtime behavior
-- **Verified** — checked against implementation or runtime evidence
-- **Revised After Runtime Validation** — changed after real execution disproved the initial plan
+**Gate rows in the verification log are a separate taxonomy** — `PASS` / `FAIL` / `BLOCKED` — recording execution events. Claims elsewhere *cite* those gate rows as their Source when asserting `Verified`.
 
 ### Verification Log (`docs/[project]-verification.md`)
 

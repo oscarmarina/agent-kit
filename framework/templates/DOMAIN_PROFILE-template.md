@@ -38,24 +38,35 @@ Unless a command explicitly says otherwise, write and execute these commands rel
 
 Only record command forms that are expected to be reusable for this stack or its real target operating environments. Do not encode one-off runner quirks, sandbox restrictions, or transient shell workarounds here; those belong in the verification log as intended/effective command evidence.
 
+Each gate command carries a **Type** that controls both the gate-row outcome (`PASS` / `FAIL` / `BLOCKED`) and the default Evidence State of any claim citing that gate as Source (see `BUILDER.md → Evidence States`):
+
+- `automated` — executable without human action; runnable in any CI shell. Gate row: `PASS` on exit 0, `FAIL` otherwise. Claims citing a `PASS` automated gate may be marked `Verified`.
+- `manual` — requires a human to run a procedure (e.g., drive a simulator, execute a commissioning checklist). Gate row: `PASS` only when a log entry with human sign-off is present; otherwise `FAIL` / `BLOCKED`. Dependent claims stay `Provisional` until that sign-off is captured.
+- `requires-proprietary-tooling` — requires vendor/platform tooling (e.g., TIA Portal, Xcode on macOS, hardware-in-the-loop rig). Gate row: `BLOCKED` when tooling is absent, with the intended/effective command triad. Dependent claims are `Provisional` or `Blocked`, never `Verified`, in that session.
+
 **GATE 0 (Dependencies):**
+- Type: `automated`
 - Command: `[e.g., npm install, pip install -r requirements.txt]`
 - Expected output: [what success looks like]
 
 **GATE 1 (Scaffold):**
+- Type: `automated`
 - Command: `[e.g., npm run build, cargo check]`
 - Expected output: [what success looks like]
 
 **GATE 2 (Feature):**
+- Type: `automated`
 - Command: `[same as Gate 1 plus any incremental checks]`
 - Expected output: [no regressions]
 
 **GATE 3 (Tests):**
-- Command: `[e.g., npm test, pytest, cargo test]`
+- Type: `[automated | manual | requires-proprietary-tooling]`
+- Command: `[e.g., npm test, pytest, cargo test | MANUAL: run PLCSIM fault-path checklist]`
 - Expected output: [all tests pass]
 - Coverage command: `[e.g., npm test -- --coverage, pytest --cov]`
 
 **GATE 4 (Final):**
+- Type: `[automated | manual | requires-proprietary-tooling]`
 - Clean command (POSIX): `[e.g., rm -rf node_modules dist && npm install && npm run build && npm test]`
 - Clean command (PowerShell): `[e.g., if (Test-Path node_modules) { Remove-Item node_modules -Recurse -Force }; if (Test-Path dist) { Remove-Item dist -Recurse -Force }; npm install; npm run build; npm test]`
 - Expected output: [everything passes from clean state]
@@ -81,10 +92,12 @@ A `heuristic` pitfall with zero occurrence hits after two projects is a removal 
 - **Severity:** [critical / major / minor]
 - **Occurrence count:** [number — starts at 1 when first documented; increment on each new detection]
 - **Confidence:** [confirmed / inferred / heuristic]
-- **Source:** [e.g., `docs/[project]-verification.md → Gate 3 FAILED 2026-03-09` | `Design review YYYY-MM-DD`]
-  <!-- confirmed → must reference the exact verification log section where the failure evidence lives
-       inferred  → reference the artifact or reasoning that led to the entry (e.g., "API docs review 2026-04-11")
-       heuristic → note the origin (e.g., "Preventive — carried from prior experience, unconfirmed in this stack") -->
+- **Source:** [e.g., `docs/[project]-verification.md → Gate 3 FAILED 2026-03-09` | `Design review YYYY-MM-DD` | `Prompt constraint 2026-04-19`]
+  <!-- Source type is implied by Confidence, and controls Promotion eligibility:
+         confirmed → MUST reference a verification-log failure line (e.g., "docs/foo-verification.md → Gate 3 FAILED 2026-03-09"). Promotion-eligible.
+         inferred  → references design/doc analysis (e.g., "API docs review 2026-04-11" or "Design section 4.2 review"). NOT promotion-eligible.
+         heuristic → preventive origin (e.g., "Prompt constraint 2026-04-19" or "Carried from prior stack experience"). NOT promotion-eligible.
+       A pitfall cannot graduate to the catalog until a real gate failure upgrades it to Confidence: confirmed with a verification-log Source. -->
 - **What goes wrong:** [Description of the error and why it's tempting]
 - **Correct approach:** [How to do it right]
 - **Detection:** [How to spot this — specific search pattern or command]
@@ -155,11 +168,15 @@ Do not store transient tooling incidents here. A decision belongs here only when
 
 ## Review Checklist
 
-Items to verify during self-review, specific to this domain. Each should be verifiable by inspection or automated check.
+Items to verify during self-review, specific to this domain. Each item pairs an assertion with a Detection method so the agent can record an Evidence State in the verification log. Prefer executable detections (`rg ...`, file existence, automated command) over "manual review" — the latter forces Provisional status under the rules in `BUILDER.md → Evidence States`.
 
-- [ ] [Domain-specific check 1]
-- [ ] [Domain-specific check 2]
-- [ ] [Domain-specific check 3]
+| Item | Detection |
+|------|-----------|
+| [Domain-specific check 1] | [`rg -n "pattern" src/` / file-existence test / automated check command / "manual review"] |
+| [Domain-specific check 2] | [...] |
+| [Domain-specific check 3] | [...] |
+
+At Self-Review time (BUILDER.md Self-Review Protocol step 4) the agent fills in the results table in the **verification log**, not here — one row per checklist item, with Status + Evidence columns. The profile defines *what* to check; the verification log records *what was found*.
 
 ## Constraints and Standards
 
