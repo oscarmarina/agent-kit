@@ -224,6 +224,8 @@ A gate marked `manual` or `requires-proprietary-tooling` cannot silently upgrade
 - If the manual procedure was not executed in this session, record the gate as `BLOCKED` with a substitution reason explaining why it was not executed (e.g., "manual checklist not executed this session").
 - If the manual procedure was executed and rejected, record the gate as `FAIL`.
 
+When a `manual` gate is `BLOCKED` because no human reviewer is present in an agent-only session, classify the outcome as `Environment Failure` (see `GATEKEEPER.md → Failure Classification`): the runtime lacks the interactive capability the gate requires. Record `Effective: none (no reviewer in session)` alongside the intended procedure and the substitution reason.
+
 Missing sign-off is not a documentation gap; it is a gate outcome. A `manual` gate that disappears from the Gates table — appearing only as a status in Progress — violates the Gate entry correspondence rule in `VERIFICATION_LOG-template.md`.
 
 ## Domain Profiles
