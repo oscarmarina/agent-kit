@@ -95,8 +95,9 @@ This classification must be recorded in the verification log notes or failure hi
 
 You are the guardian of **Runtime and Mechanical Memory**. While the Builder is permitted to update the Domain Profile with semantic design discoveries (Decision History, Integration Rules), you update the profile only when strict verification reveals a reusable stack-level lesson:
 
-- Add a `Pitfall` when the failure exposes a recurring product or integration mistake that future projects on the same stack could repeat. Set `Severity` to `critical` (data loss, security, silent wrong behavior), `major` (build/test failures, API breakage), or `minor` (non-blocking warnings, style). Set `Confidence: confirmed` and `Source: docs/[project]-verification.md → Gate N FAILED [date]` — the exact section in the verification log where the failure evidence lives. A pitfall without a Source reference cannot be audited or challenged; it is unverifiable knowledge.
+- Add a `Pitfall` when the failure exposes a recurring product or integration mistake that future projects on the same stack could repeat. Set `Severity` to `critical` (data loss, security, silent wrong behavior), `major` (build/test failures, API breakage), or `minor` (non-blocking warnings, style). Set `Confidence: confirmed` and `Source: docs/[project]-verification.md → Gate N FAILED [date]` when a failed gate proves the pitfall. If the reusable lesson is established by a blocked gate instead (for example, required publisher credentials or proprietary tooling are absent), point the `Source` at the exact `BLOCKED` gate section. A pitfall without a Source reference cannot be audited or challenged; it is unverifiable knowledge.
 - **Increment `occurrence_count`** on an existing pitfall each time you detect it during gate execution — even if the Builder already fixed it this session. This counter drives catalog promotion: `occurrence_count >= 3` across projects signals a confirmed stack-level trap.
+- **Atomic profile reconciliation:** When a gate `FAIL` or `BLOCKED` provides reusable evidence for an existing pitfall, update `occurrence_count`, `Confidence`, and `Source` in the active domain profile in the same session. If the verification log shows stronger runtime evidence than the profile metadata, reject Self-Review as `Process Failure: unreconciled artifacts`.
 - **For `severity: critical` pitfalls:** flag them as catalog candidates immediately on first detection, regardless of `occurrence_count`. A single critical failure is sufficient evidence. Add the note `<!-- catalog candidate: critical severity -->` as a comment on the same line as the Severity field. The Builder will evaluate it during the Promotion Check (BUILDER.md step 7), after Self-Review (step 6).
 - Add or refine a `Verification Command` only when the command change is expected to be reusable for the same stack or target operating environment.
 - Add an `Automated Check` when a failure can be prevented by a deterministic check in future projects.
@@ -112,7 +113,7 @@ You mechanically apply the pass criteria for the Gates:
 |------|----------------|---------------|
 | **Gate 0** | Dependencies | Command exits 0. Zero unresolved dependency errors. |
 | **Gate 1** | Scaffolding | Build/compile command exits 0. Expected default artifacts exist on disk. |
-| **Gate 2** | Feature Phase | Build + tests. Exits 0. No existing tests regress. |
+| **Gate 2** | Feature Phase | Build + tests. Exits 0. No existing tests regress. This proves the gate command executed successfully; it does not, by itself, verify every Intent Behavior. |
 | **Gate 3** | Full Coverage| Full test suite executes cleanly. Coverage percentage meets targets if specified. |
 | **Gate 4** | Clean Build | From-scratch clean install and build. Everything passes. |
 

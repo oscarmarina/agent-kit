@@ -94,7 +94,7 @@ A `heuristic` pitfall with zero occurrence hits after two projects is a removal 
 - **Confidence:** [confirmed / inferred / heuristic]
 - **Source:** [e.g., `docs/[project]-verification.md → Gate 3 FAILED 2026-03-09` | `Design review YYYY-MM-DD` | `Prompt constraint 2026-04-19`]
   <!-- Source type is implied by Confidence, and controls Promotion eligibility:
-         confirmed → MUST reference a verification-log failure line (e.g., "docs/foo-verification.md → Gate 3 FAILED 2026-03-09"). Promotion-eligible.
+         confirmed → MUST reference a verification-log failure or blocked line (e.g., "docs/foo-verification.md → Gate 3 FAILED 2026-03-09" or "docs/foo-verification.md → Gate 4 BLOCKED 2026-04-20"). Only failure-backed confirmed entries are promotion-eligible under catalog rules.
          inferred  → references design/doc analysis (e.g., "API docs review 2026-04-11" or "Design section 4.2 review"). NOT promotion-eligible.
          heuristic → preventive origin (e.g., "Prompt constraint 2026-04-19" or "Carried from prior stack experience"). NOT promotion-eligible.
        A pitfall cannot graduate to the catalog until a real gate failure upgrades it to Confidence: confirmed with a verification-log Source. -->
@@ -110,6 +110,8 @@ A `heuristic` pitfall with zero occurrence hits after two projects is a removal 
 - **What goes wrong:** [Description]
 - **Correct approach:** [How to do it right]
 - **Detection:** [Search pattern or verification step]
+
+If runtime evidence in the verification log upgrades a pitfall's certainty, reconcile `Occurrence count`, `Confidence`, and `Source` in the same session. Do not leave weaker profile metadata behind after a gate `FAIL` or `BLOCKED` proves more.
 
 *(Add as many pitfalls as needed. Each one learned from real project experience.)*
 

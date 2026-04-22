@@ -185,7 +185,7 @@ Mechanical proof. Template: `templates/VERIFICATION_LOG-template.md`
 |---------|---------|
 | Progress | Summary table updated after every gate/phase transition. Resume point for interrupted work |
 | Gate entries | Real command output for each gate |
-| Self-Review | Domain checklist results + Devil's Advocate (Full only) |
+| Self-Review | Intent behavior coverage + domain checklist results + Devil's Advocate (Full only) |
 | Failure History | Root causes and fixes |
 | Domain Profile Updates | What changed in the profile and why |
 

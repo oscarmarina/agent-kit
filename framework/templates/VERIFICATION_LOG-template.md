@@ -169,6 +169,13 @@ A `PASS` gate is what lets a dependent claim move from Provisional to Verified. 
 
 ## Self-Review
 
+### Intent Behavior Coverage
+[One row per Behavior in the Intent. A passing gate row is not, by itself, proof that every Behavior is verified. Each row must name the current Evidence State and point to a resoluble source when `Verified`.]
+
+| Behavior | Status | Evidence |
+|----------|--------|----------|
+| [Given/When/Then behavior from Intent] | [Verified / Provisional / Blocked] | [`docs/[project]-verification.md → Gate 2 PASS` / `src/path/file.ts:42` / "manual review pending" / intended-effective-substitution triad reference] |
+
 ### Domain Checklist Results
 [Run every Automated Check from the domain profile. Paste command + result.]
 
@@ -220,6 +227,8 @@ A `PASS` gate is what lets a dependent claim move from Provisional to Verified. 
 ## Domain Profile Updates
 
 *(List every change made to the domain profile during this project. This section closes the learning loop: failures and discoveries above flow into the profile for the next project.)*
+
+[If a gate `FAIL` or `BLOCKED` upgraded the evidence for an existing pitfall, reconcile `occurrence_count`, `Confidence`, and `Source` in the active domain profile during this same session. Leaving the log and profile out of sync is a Process Failure.]
 
 | What Changed | Section Updated | Trigger |
 |---|---|---|

@@ -359,14 +359,16 @@ The effective command is the source of truth for verification evidence.
 
 After implementation, shift to Adversary Lens:
 
-1. Re-read the Intent. Does the code deliver every Behavior described? Does it respect every Constraint?
+1. Re-read the Intent. Does the code deliver every Behavior described? Does it respect every Constraint? Then perform a **Behavior-to-Evidence Check**: for every Behavior in the Intent, add one row to the verification log's `Intent Behavior Coverage` table with `Verified` / `Provisional` / `Blocked` and a resoluble `Evidence` source. A passing gate row is not, by itself, proof that every Behavior is verified.
 2. Run every Automated Check from the domain profile (execute command, verify result)
 3. Check every Common Pitfall from the domain profile against the codebase. Mark each with an Evidence State (`Verified` / `Provisional` / `Blocked`) per the rules in the Evidence States section. If the pitfall's Detection is "manual review" or depends on a Blocked gate, it is Provisional — not Verified.
 4. Verify every Review Checklist item with the same Evidence State discipline. Structural plausibility without a resoluble Source is Provisional.
+
+   **Gate 2 evidence sufficiency rule:** Gate 2 `PASS` means the feature-phase verification command executed successfully. It does **not** automatically verify the product behaviors in the Intent. If Gate 2 passes but no core Intent Behavior can cite Gate 2 evidence as Source, Self-Review must record `Process Failure: insufficient product evidence`, and the project must not be presented as fully verified.
 5. **For Full projects only:** add to the verification log:
    - Devil's Advocate section (3 uncovered scenarios, weakest link, attack vector)
    - Findings section: list any genuine vulnerabilities or logic flaws found. If none are found, document the most critical attack vectors you investigated and explain why they are not exploitable in this design. Do not fabricate findings to meet a quota — honest "checked X, found nothing" is more valuable than invented issues.
-6. **Profile Integrity Audit (Full — mandatory; all sizes — when explicitly requested):** Run the Profile Integrity Audit (see section below) before evaluating promotion candidates. Stale and redundant pitfalls must be resolved before promotion — promoting a stale entry is worse than not promoting it. Write one summary line in the Verification Log's Domain Profile Updates section: `"Integrity Audit: N stale, M redundant, K heuristic reviewed. [Actions taken.]"` even if all results are zero.
+6. **Profile Integrity Audit (Full — mandatory; all sizes — when explicitly requested):** Run the Profile Integrity Audit (see section below) before evaluating promotion candidates. Stale and redundant pitfalls must be resolved before promotion — promoting a stale entry is worse than not promoting it. Reconcile any pitfall whose runtime evidence in this project's verification log is stronger than the current profile metadata (`occurrence_count`, `Confidence`, or `Source`). Self-Review cannot complete while the verification log and active domain profile disagree about a runtime-detected pitfall. Write one summary line in the Verification Log's Domain Profile Updates section: `"Integrity Audit: N stale, M redundant, K heuristic reviewed. [Actions taken.]"` even if all results are zero.
 7. **Promotion check (all sizes):** Scan the active domain profile for pitfalls that meet **all** these criteria:
    - `Confidence: confirmed` — the pitfall has a `Source:` pointing to a real verification-log failure. `inferred` and `heuristic` pitfalls never promote, regardless of count or severity.
    - Either `occurrence_count >= 3` across different projects (confirmed stack-level trap), **or** `severity: critical` with `Confidence: confirmed` from first runtime detection (a critical pitfall sourced only from a prompt constraint is still `heuristic` and does not qualify).
@@ -412,6 +414,7 @@ Scan all pitfall `Detection` commands for identical or substantially overlapping
 List all pitfalls with `Confidence: heuristic`. For each one:
 
 - If the pitfall was **detected by the GateKeeper during a real gate execution in this project** (i.e., `occurrence_count` was incremented by a runtime detection, not by design-time authoring) → upgrade to `Confidence: inferred` (or `confirmed` if backed by a specific verification-log entry) and add or update the `Source` reference. Design-time authoring alone does not upgrade confidence — a heuristic that was added proactively and never fired is still heuristic.
+- If the verification log now contains stronger runtime evidence for the pitfall than the active profile metadata records, update `occurrence_count`, `Confidence`, and `Source` in the same session. Leaving weaker profile metadata in place is an unreconciled-artifacts failure, not an optional cleanup.
 - If the pitfall has been in the profile across 2 or more projects with zero occurrence hits → flag for removal. A pitfall that never fires after repeated exposure is likely wrong, over-specific, or already resolved by the codebase.
 
 ### Recording the audit
