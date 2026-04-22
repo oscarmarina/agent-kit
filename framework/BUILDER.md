@@ -364,6 +364,29 @@ The effective command is the source of truth for verification evidence.
 
 **No PROJECT_STATUS.md** — the Verification Log IS the status.
 
+## Artifact Existence Gate
+
+Before recording later phases as complete, verify that the required framework artifacts exist on disk.
+
+**Full projects**
+- `docs/[project]-intent.md`
+- `docs/[project]-design.md`
+- `docs/[project]-verification.md`
+
+**Standard projects**
+- `docs/[project]-intent.md`
+- `docs/[project]-verification.md`
+- `docs/[project]-design.md` only when Standard step 5 required a Design document for this project
+
+This is a mechanical gate, not a judgment call.
+
+- If a required artifact is missing, do **not** mark `Design`, `Self-Review`, `Domain update`, or Promotion Check as complete.
+- Record `Process Failure: missing required artifact(s)` in the verification log once the log exists.
+- If the missing artifact is the verification log itself, stop and write it before proceeding with any further gate recording or phase-complete claims.
+- A project may not be presented as "in Self-Review", "ready for promotion", "complete", or equivalent while this gate is failing.
+
+Artifact content quality is evaluated elsewhere. This gate checks existence only.
+
 ## Self-Review Protocol
 
 After implementation, shift to Adversary Lens:

@@ -80,6 +80,8 @@ Project code goes in its own directory — never at the repo root.
 
 All sizes load relevant skills when they exist (see Skills section below). For Full, skill loading is mandatory — document that none were found if that's the case.
 
+The artifacts in the "Artifacts produced" column are not suggestions. Their presence on disk is a mechanical precondition for any later phase-complete claim; see [BUILDER.md](BUILDER.md) → Artifact Existence Gate.
+
 Quick escalates to Standard if it touches > 3 files or uncovers bugs beyond the original scope.
 
 When in doubt, the Builder goes one size up.
@@ -180,6 +182,8 @@ Claims across the framework (design decisions, pitfall applicability, review che
 ### Verification Log (`docs/[project]-verification.md`)
 
 Mechanical proof. Template: `templates/VERIFICATION_LOG-template.md`
+
+Before later phases are marked complete, the required framework artifacts for the declared project size must exist on disk. Canonical rules live in [BUILDER.md](BUILDER.md) → Artifact Existence Gate.
 
 | Section | Content |
 |---------|---------|
