@@ -71,6 +71,16 @@ Each gate command carries a **Type** that controls both the gate-row outcome (`P
 - Clean command (PowerShell): `[e.g., if (Test-Path node_modules) { Remove-Item node_modules -Recurse -Force }; if (Test-Path dist) { Remove-Item dist -Recurse -Force }; npm install; npm run build; npm test]`
 - Expected output: [everything passes from clean state]
 
+**Release-flow modeling guidance:**
+
+When a release flow combines local artifact validation and external publication, prefer modeling them as distinct verification steps or distinct gate evidence blocks.
+
+Examples:
+- package artifact generation or validation → usually `automated`
+- publish to registry, marketplace, device fleet, or vendor-managed environment → often `requires-proprietary-tooling` or otherwise access-constrained
+
+Do not collapse both into one "release succeeded" claim if only the local artifact step was verified.
+
 If different command variants are needed, prefer documenting stable target-environment variants such as POSIX vs PowerShell. Do not add variants that exist only because a specific agent runner or shell session is unreliable.
 
 ## Common Pitfalls
@@ -94,7 +104,7 @@ A `heuristic` pitfall with zero occurrence hits after two projects is a removal 
 - **Confidence:** [confirmed / inferred / heuristic]
 - **Source:** [e.g., `docs/[project]-verification.md → Gate 3 FAILED 2026-03-09` | `Design review YYYY-MM-DD` | `Prompt constraint 2026-04-19`]
   <!-- Source type is implied by Confidence, and controls Promotion eligibility:
-         confirmed → MUST reference a verification-log failure or blocked line (e.g., "docs/foo-verification.md → Gate 3 FAILED 2026-03-09" or "docs/foo-verification.md → Gate 4 BLOCKED 2026-04-20"). Only failure-backed confirmed entries are promotion-eligible under catalog rules.
+         confirmed → MAY reference a verification-log failure or blocked line (e.g., "docs/foo-verification.md → Gate 3 FAILED 2026-03-09" or "docs/foo-verification.md → Gate 4 BLOCKED 2026-04-20"). Failure-backed confirmed entries are promotion-eligible under catalog rules; blocked-backed confirmed entries are valid for local profile reconciliation but are not promotion-eligible by themselves.
          inferred  → references design/doc analysis (e.g., "API docs review 2026-04-11" or "Design section 4.2 review"). NOT promotion-eligible.
          heuristic → preventive origin (e.g., "Prompt constraint 2026-04-19" or "Carried from prior stack experience"). NOT promotion-eligible.
        A pitfall cannot graduate to the catalog until a real gate failure upgrades it to Confidence: confirmed with a verification-log Source. -->

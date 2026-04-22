@@ -157,7 +157,7 @@ Architecture + decisions + risks. **Required for Full; optional for Standard** (
 |---------|---------|
 | Domain Profile Selection Rationale | Candidates, scores, exclusions, selected profile |
 | Skills Loaded | Skills matched and loaded, or "none" if no skills apply |
-| Design Status | Which sections or decisions are Provisional, Verified, or Revised After Runtime Validation |
+| Design Status | Which sections or decisions are Provisional, Verified, Blocked, or Revised After Runtime Validation |
 | Stack | Technologies with verified versions |
 | Structure | Code organization |
 | Data Flow | How data moves, especially across technology boundaries |

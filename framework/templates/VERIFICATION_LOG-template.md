@@ -38,6 +38,16 @@ A `PASS` gate is what lets a dependent claim move from Provisional to Verified. 
 
 **Update this section after every gate or phase transition. When resuming interrupted work, read this section first.**
 
+**Progress status vocabulary.** Use only these values in the `Progress` table:
+- Gate rows (`Gate 0`–`Gate 4`): `PASS` / `FAIL` / `BLOCKED` / `—`
+- Artifact or phase rows (`Intent`, `Skills loaded`, `Design`, `Self-Review`, `Domain update`): `Done` / `In Progress` / `Pending` / `—`
+
+`Provisional`, `Verified`, and `Blocked` are Evidence States for claims elsewhere in the log; they are **not** valid substitutes for gate status in the `Progress` table.
+
+`—` is valid only while the gate has not been reached. Once a gate has been attempted — even unsuccessfully — `Progress` must reflect `PASS` / `FAIL` / `BLOCKED`, and a corresponding gate entry must exist (see Gate entry correspondence rule below).
+
+**Gate entry correspondence rule.** Every gate marked `PASS`, `FAIL`, or `BLOCKED` in `Progress` must have a corresponding gate entry in either the compact Gates table or the expanded gate section. A gate cannot be marked complete in `Progress` without a matching execution record elsewhere in the verification log.
+
 ---
 
 ## Gates (compact format — use for passing gates)
@@ -178,6 +188,8 @@ A `PASS` gate is what lets a dependent claim move from Provisional to Verified. 
 
 ### Domain Checklist Results
 [Run every Automated Check from the domain profile. Paste command + result.]
+
+**Result field rule.** The `Result` column records post-execution observation only. A prediction such as "Expected to fail X" is **not** a result. Predictions belong in `Notes`, `Evidence`, or a `Provisional` assertion — not in a result field presented as executed evidence. If the check was not run, write "not run" in `Result` and mark `Status: Provisional` or `Blocked`.
 
 | Check | Command | Result | Status |
 |-------|---------|--------|--------|

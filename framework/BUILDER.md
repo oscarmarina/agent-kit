@@ -219,6 +219,13 @@ Each gate command in the domain profile carries a `Type` field (`automated` / `m
 
 A gate marked `manual` or `requires-proprietary-tooling` cannot silently upgrade dependent claims to `Verified` — the agent must either attach human sign-off/runtime evidence or leave those claims `Provisional`/`Blocked`.
 
+**Manual gate completion rule.** A `manual` gate cannot be recorded as `PASS` without a human sign-off entry and observed output in the verification log.
+
+- If the manual procedure was not executed in this session, record the gate as `BLOCKED` with a substitution reason explaining why it was not executed (e.g., "manual checklist not executed this session").
+- If the manual procedure was executed and rejected, record the gate as `FAIL`.
+
+Missing sign-off is not a documentation gap; it is a gate outcome. A `manual` gate that disappears from the Gates table — appearing only as a status in Progress — violates the Gate entry correspondence rule in `VERIFICATION_LOG-template.md`.
+
 ## Domain Profiles
 
 Domain profiles are the learning mechanism. They accumulate knowledge across projects with the same stack. They are the most valuable artifact in this framework.
@@ -370,7 +377,7 @@ After implementation, shift to Adversary Lens:
    - Findings section: list any genuine vulnerabilities or logic flaws found. If none are found, document the most critical attack vectors you investigated and explain why they are not exploitable in this design. Do not fabricate findings to meet a quota — honest "checked X, found nothing" is more valuable than invented issues.
 6. **Profile Integrity Audit (Full — mandatory; all sizes — when explicitly requested):** Run the Profile Integrity Audit (see section below) before evaluating promotion candidates. Stale and redundant pitfalls must be resolved before promotion — promoting a stale entry is worse than not promoting it. Reconcile any pitfall whose runtime evidence in this project's verification log is stronger than the current profile metadata (`occurrence_count`, `Confidence`, or `Source`). Self-Review cannot complete while the verification log and active domain profile disagree about a runtime-detected pitfall. Write one summary line in the Verification Log's Domain Profile Updates section: `"Integrity Audit: N stale, M redundant, K heuristic reviewed. [Actions taken.]"` even if all results are zero.
 7. **Promotion check (all sizes):** Scan the active domain profile for pitfalls that meet **all** these criteria:
-   - `Confidence: confirmed` — the pitfall has a `Source:` pointing to a real verification-log failure. `inferred` and `heuristic` pitfalls never promote, regardless of count or severity.
+   - `Confidence: confirmed` — the pitfall has a `Source:` pointing to a real verification-log failure (`FAILED` gate row). `inferred` and `heuristic` pitfalls never promote, regardless of count or severity. A `BLOCKED` gate may justify a local `confirmed` profile entry when it proves a reusable constraint, but `BLOCKED` evidence alone does not make the pitfall promotion-eligible.
    - Either `occurrence_count >= 3` across different projects (confirmed stack-level trap), **or** `severity: critical` with `Confidence: confirmed` from first runtime detection (a critical pitfall sourced only from a prompt constraint is still `heuristic` and does not qualify).
 
    For each candidate, answer the portability test:

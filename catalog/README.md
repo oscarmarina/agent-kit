@@ -41,7 +41,7 @@ A pitfall becomes a **catalog candidate** when it meets the baseline requirement
 
 | Requirement | Rationale |
 |---|---|
-| `Confidence: confirmed` with a `Source:` pointing to a verification-log failure | Only runtime-proven failures graduate to the catalog. `inferred` and `heuristic` pitfalls — including those sourced from prompts, design reviews, or preventive knowledge — are not promotion-eligible, regardless of severity or count. |
+| `Confidence: confirmed` with a `Source:` pointing to a verification-log failure (`FAILED` gate row) | Only runtime-proven failures graduate to the catalog. `inferred` and `heuristic` pitfalls — including those sourced from prompts, design reviews, or preventive knowledge — are not promotion-eligible, regardless of severity or count. A `BLOCKED` gate may justify a local confirmed profile entry when it proves a reusable constraint, but it is not promotion-eligible by itself. |
 
 **Trigger (at least one, on top of baseline):**
 
