@@ -1,6 +1,6 @@
 # Intent: [Short Name]
 
-**Artifact Schema Version:** 1.1.0
+**Artifact Schema Version:** 1.2.0
 **Date:** [Date]
 **Size:** [Quick / Standard / Full]
 **Domain Profile:** [Reference to framework/domains/ profile, or "New — will be created"]

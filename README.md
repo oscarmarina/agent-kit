@@ -1,6 +1,6 @@
 # Agent Kit
 
-> **Non-normative view.** This document explains the framework for humans. Operational truth — the rules agents must follow — lives in [`framework/BUILDER.md`](framework/BUILDER.md) and [`framework/GATEKEEPER.md`](framework/GATEKEEPER.md). If this page disagrees with either, those files win.
+> **Non-normative view.** This document explains the framework for humans. Operational truth — the rules agents must follow — lives in the role contracts: [`framework/BUILDER.md`](framework/BUILDER.md), [`framework/GATEKEEPER.md`](framework/GATEKEEPER.md), and [`framework/REVIEWER.md`](framework/REVIEWER.md). [`framework/ENFORCEMENT.md`](framework/ENFORCEMENT.md) restates a subset of those obligations as machine-checkable invariants and adds no new rules. If this page disagrees with them, those files win.
 
 A process framework for LLM-assisted software development. Works with any LLM and any technology stack.
 
@@ -219,6 +219,8 @@ Each document serves a distinct purpose ([Diátaxis](https://diataxis.fr/)):
 | [**framework/README.md**](framework/README.md) | Reference | Human | File descriptions, gate definitions, artifact specs, contracts |
 | [**framework/BUILDER.md**](framework/BUILDER.md) | Agent contract | LLM | Process instructions the LLM follows during implementation |
 | [**framework/GATEKEEPER.md**](framework/GATEKEEPER.md) | Agent contract | LLM | Verification instructions the LLM follows during gate execution |
+| [**framework/REVIEWER.md**](framework/REVIEWER.md) | Agent contract | LLM | Independent diff-logic review and finding arbitration |
+| [**framework/ENFORCEMENT.md**](framework/ENFORCEMENT.md) | Reference | Human + LLM | Machine-checkable invariants and how to bind them to a host (hook / CI / git / manual) |
 | [**catalog/README.md**](catalog/README.md) | How-to guide | Human | How to use and contribute domain profiles |
 
 **Start here:** If you're new, read [GUIDE.md](GUIDE.md). If you need specifics, read [framework/README.md](framework/README.md). If you want to understand the design decisions, read this file.

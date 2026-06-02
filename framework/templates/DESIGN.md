@@ -1,6 +1,6 @@
 # Design: [Project Name]
 
-**Artifact Schema Version:** 1.1.0
+**Artifact Schema Version:** 1.2.0
 **Intent:** docs/[project]-intent.md
 **Domain Profile:** framework/domains/[profile].md
 **Date:** [Date]

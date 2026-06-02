@@ -1,6 +1,6 @@
 # Verification Log: [Project Name]
 
-**Artifact Schema Version:** 1.1.0
+**Artifact Schema Version:** 1.2.0
 
 This log captures the actual output of every verification gate. It is the source of truth for project completion status.
 
@@ -47,6 +47,21 @@ A `PASS` gate is what lets a dependent claim move from Provisional to Verified. 
 `—` is valid only while the gate has not been reached. Once a gate has been attempted — even unsuccessfully — `Progress` must reflect `PASS` / `FAIL` / `BLOCKED`, and a corresponding gate entry must exist (see Gate entry correspondence rule below).
 
 **Gate entry correspondence rule.** Every gate marked `PASS`, `FAIL`, or `BLOCKED` in `Progress` must have a corresponding gate entry in either the compact Gates table or the expanded gate section. A gate cannot be marked complete in `Progress` without a matching execution record elsewhere in the verification log.
+
+---
+
+## Shard Manifest (broad multi-file tasks only)
+
+[Use this section only for **Sharded Execution** (`BUILDER.md → Sharded Execution`): a broad, repetitive change across many files. Delete it for normal tasks. The orchestrator writes this **before any edit**. Every target file belongs to exactly one shard — no overlap, no gap. A `failed` shard re-enters as `pending` under the Retry Budget. The **aggregate** gate over the merged result (in the Gates section) is the authoritative evidence — a per-shard pass is an input, not the final gate.]
+
+**Coverage check:** [N target files, N assigned, 0 unassigned]   **Last updated:** [Date/Time]
+
+| Shard | File / module set | Worker | Status |
+|-------|-------------------|--------|--------|
+| s1 | `[paths or glob this shard owns]` | [agent / sequential] | [pending / in-progress / done / failed] |
+| s2 | `[…]` | [agent / sequential] | [pending / in-progress / done / failed] |
+
+**Done criteria:** every row `done` + aggregate gate `PASS` + Intent Behavior Coverage satisfied. Independent Review runs once on the aggregate diff.
 
 ---
 
@@ -208,6 +223,17 @@ A `PASS` gate is what lets a dependent claim move from Provisional to Verified. 
 | Pitfall | Applies? | Status | Evidence |
 |---------|----------|--------|----------|
 | [Profile pitfall name] | [Yes / No] | [Verified / Provisional / Blocked] | [Source pointer or "manual review"] |
+
+### Independent Review
+[Per `REVIEWER.md`. Optional for Quick; blocking-findings pass for Standard; mandatory for Full. Each finding carries a Severity (`Blocking` / `Non-blocking`), an Evidence State, and a Disposition (`Fix now` / `Defer` / `Reject as noise`). Only `Blocking` findings gate completion. If the review found nothing, record one row stating what was examined and `Result: 0 blocking` — a missing subsection is indistinguishable from a skipped review.]
+
+**Mode:** [sub-agent (fresh context) / single-agent (procedural)]   **Size:** [Quick / Standard / Full]
+
+| # | Severity | Finding (file:line or Intent clause) | Evidence | Disposition | Rationale |
+|---|----------|--------------------------------------|----------|-------------|-----------|
+| 1 | [Blocking / Non-blocking] | [`src/path/file.ts:42` or "Intent Constraint: MUST NOT …"] | [Verified / Provisional / Blocked] | [Fix now / Defer / Reject as noise] | [one line] |
+
+**Result:** [N blocking / M deferred / K rejected]. [All blocking findings resolved — or list what remains.]
 
 ### Devil's Advocate (Full projects only)
 1. **What happens when:** [scenario 1], [scenario 2], [scenario 3]

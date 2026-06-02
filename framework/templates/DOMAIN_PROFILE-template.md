@@ -1,6 +1,6 @@
 # Domain Profile: [Domain - Stack]
 
-**Artifact Schema Version:** 1.1.0
+**Artifact Schema Version:** 1.2.0
 **Domain:** [e.g., Web Frontend, PLC/Industrial Automation, Embedded Systems, Backend Services, Mobile]
 **Stack:** [e.g., Angular + Lit, Siemens TIA Portal SCL, STM32 + FreeRTOS, Python FastAPI, React Native]
 **Standards:** [e.g., IEC 61131-3, MISRA C, OWASP Top 10, WCAG 2.1]
