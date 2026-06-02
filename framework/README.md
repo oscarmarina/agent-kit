@@ -1,6 +1,6 @@
 # Agent Kit — Reference
 
-> **Non-normative view.** Reference index for humans. Operational truth for agents lives in `BUILDER.md` and `GATEKEEPER.md`. If this page disagrees with either, those files win.
+> **Non-normative view.** Reference index for humans. Operational truth for agents lives in the role contracts `BUILDER.md`, `GATEKEEPER.md`, and `REVIEWER.md`; `ENFORCEMENT.md` restates a subset as machine-checkable invariants and adds no new rules. If this page disagrees with them, those files win.
 
 ## Contents
 
@@ -8,6 +8,8 @@
 |------|---------|
 | `BUILDER.md` | Process contract — lenses, gates, pre-implementation checkpoint, single/dual-agent verification, rules |
 | `GATEKEEPER.md` | Verification agent contract — executes commands, enforces gates, updates pitfalls |
+| `REVIEWER.md` | Independent-review role contract — reads the diff's logic, scales independence by mode, arbitrates findings (only `Blocking` issues gate completion) |
+| `ENFORCEMENT.md` | Machine-checkable invariants (restated from the role contracts) + binding model (host hook / CI / git pre-commit / manual) |
 | `ARTIFACT_SCHEMA_VERSION` | Artifact schema version for Intent/Design/Verification/Profile templates |
 | `domains/_template.md` | Template for creating profile links that extend catalog profiles |
 | `domains/README.md` | How domain profiles work — types, matching, merge rules |
@@ -21,7 +23,7 @@
 ## Setup
 
 1. Copy `framework/` into the target repo.
-2. Copy `AGENTS.md` from the repo root into the target repo (or create it — see `AGENTS.md` for the current format). It defines the reading order: `BUILDER.md`, then `GATEKEEPER.md`, then `framework/domains/` only when BUILDER step 2 routes there.
+2. Copy `AGENTS.md` from the repo root into the target repo (or create it — see `AGENTS.md` for the current format). It defines the reading order: `BUILDER.md`, then `GATEKEEPER.md`, then `REVIEWER.md`, then `ENFORCEMENT.md` (skim), then `framework/domains/` only when BUILDER step 2 routes there.
 3. Create `docs/` for project-specific artifacts.
 4. Create a profile link in `framework/domains/` that extends a relevant profile from the [catalog](../catalog/), or let the Builder create one during the first project. See `domains/_template.md` for the link format.
 
@@ -33,6 +35,8 @@ repo/
 ├── framework/              ← framework (reusable)
 │   ├── BUILDER.md
 │   ├── GATEKEEPER.md
+│   ├── REVIEWER.md
+│   ├── ENFORCEMENT.md
 │   ├── ARTIFACT_SCHEMA_VERSION
 │   ├── VERSION
 │   ├── domains/
@@ -85,6 +89,8 @@ The artifacts in the "Artifacts produced" column are not suggestions. Their pres
 Quick escalates to Standard if it touches > 3 files or uncovers bugs beyond the original scope.
 
 When in doubt, the Builder goes one size up.
+
+This table is the **depth** axis. **Breadth** (the same mechanical change across many files) is orthogonal and handled by **Sharded Execution** — see [BUILDER.md](BUILDER.md) → Verification Protocol → Orchestrated Mode → Sharded Execution. A task can be Standard-depth and high-breadth.
 
 ## Verification gates
 

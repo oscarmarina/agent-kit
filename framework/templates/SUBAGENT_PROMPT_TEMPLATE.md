@@ -1,6 +1,6 @@
 # Sub-agent Prompt Template: [Role Name]
 
-**Artifact Schema Version:** 1.1.0
+**Artifact Schema Version:** 1.2.0
 
 > This is a **prompt template**, not a runtime contract. Current LLM tooling (Claude Code, Cursor, and similar) does not register persistent sub-agent roles — every sub-agent invocation is ephemeral and starts with no memory of prior calls. Use this template to author the *prompt body* you pass each time you spawn a worker for this role. Stored here so repeated delegations stay consistent instead of diverging.
 >

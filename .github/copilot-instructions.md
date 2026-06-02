@@ -1,6 +1,6 @@
 # Agent Kit — LLM Context
 
-> **Non-normative view.** This file summarizes the framework for IDE assistants working on the Agent Kit repo itself. Operational truth — the rules agents must follow when building projects — lives in `framework/BUILDER.md` and `framework/GATEKEEPER.md`. If this file disagrees with either, those files win.
+> **Non-normative view.** This file summarizes the framework for IDE assistants working on the Agent Kit repo itself. Operational truth — the rules agents must follow when building projects — lives in the role contracts `framework/BUILDER.md`, `framework/GATEKEEPER.md`, and `framework/REVIEWER.md`; `framework/ENFORCEMENT.md` restates a subset as machine-checkable invariants and adds no new rules. If this file disagrees with them, those files win.
 
 This repository **is** the Agent Kit framework. It is not a project built with the framework — it is the framework itself.
 

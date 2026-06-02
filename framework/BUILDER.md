@@ -133,6 +133,8 @@ Same as Standard, but:
 
 When in doubt, go one size up. The cost of slight over-documentation is lower than the cost of missing a critical decision.
 
+This scale measures **depth** (how hard the decisions are), not **breadth** (how many files the same change touches). A broad but mechanical task — the same transformation across hundreds of files — is sized by its decisions like any other, but its *execution* follows the breadth-axis discipline in `Sharded Execution` (under Verification Protocol → Orchestrated Mode). The two axes are orthogonal: a task can be Standard-depth and high-breadth.
+
 ### Anti-Loop Rule
 
 For Standard and Full tasks, produce the Intent document **before** continuing to investigate. Research enough to understand the prompt, then commit decisions to `docs/[project]-intent.md`. If a decision is unclear, write it as an open question in the Intent and ASK the human — don't keep researching hoping the answer will appear. The Intent is where decisions are recorded; internal deliberation without an artifact is wasted work that disappears on context loss.
@@ -206,6 +208,22 @@ Some environments support sub-agents, worker agents, or other delegated executio
 5. Delegation is only valid if it preserves the framework's audit trail. If delegation obscures what was actually done, do not delegate that step.
 
 Use sub-agents for context isolation, specialization, or parallel work. Use skills for reusable procedures. Use domain profiles for reusable stack knowledge. These mechanisms complement each other; they do not overlap in authority.
+
+The **Independent Review** (`REVIEWER.md`) is the role that benefits most from a fresh-context sub-agent: delegating it to an agent that did not write the code is the cleanest way to get genuine independence. The orchestrator still owns the findings and their dispositions — a delegated review returns findings, not authority.
+
+### Sharded Execution (breadth axis)
+
+The Quick / Standard / Full scale measures **depth** — how hard the decisions are. It does not measure **breadth** — how many places the *same* change must be applied. A mechanical transformation across hundreds of files (a codemod, a lint-rule migration, a dependency bump, a framework swap, a codebase-wide audit) is architecturally shallow but broad: doing it in one linear pass is slow and loses track of coverage. Sharded Execution is the breadth axis. It is a **process discipline, not a parallelism feature** — it works whether or not the host can run sub-agents concurrently.
+
+**Use it only when** the task is broad and *repetitive* (the same kind of change applied across many independent files/modules), not when it is architecturally deep. One Intent and one Design still govern the whole task; sharding changes throughput, never scope or truth.
+
+1. **Partition contract (before any edit).** The orchestrator writes a **Shard Manifest** in the verification log: one row per shard with `shard id`, the file/module set it owns, the assigned worker, and a status (`pending` / `in-progress` / `done` / `failed`). Every target file belongs to **exactly one** shard — no overlap, no gap. Record the coverage check explicitly: `"N target files, N assigned, 0 unassigned"`. The manifest is the partition contract; a task with an unverified coverage count is not ready to dispatch.
+2. **Apply per shard.** Each shard is worked against the shared Intent and profile pitfalls, editing **only its own file set**. If the host has sub-agents, shards may run in parallel — pass each worker only its file set + the Intent + relevant pitfalls (the Orchestrated Mode rules above apply unchanged: workers return results, not authority). If the host has no sub-agents, the **same manifest is worked sequentially, shard by shard** — Sharded Execution degrades gracefully and never depends on a parallel runtime.
+3. **Reconcile on the aggregate.** Cross-shard interactions only surface in aggregate, so the **authoritative gate runs once over the whole merged result** (Gate 2/3/4 across the repo, not per shard). A per-shard pass is an evidence input, not the final gate: a per-shard `PASS` never upgrades a dependent claim to `Verified` on its own (see Evidence States). The aggregate gate row is the Source.
+4. **One review on the whole diff.** Independent Review (`REVIEWER.md`) runs once on the **aggregate diff**, not per shard — so a reader who saw the entire change can catch cross-shard logic regressions.
+5. **Convergence is mechanical, not iterative-until-vibes.** The task is done only when (a) every manifest row is `done`, (b) the aggregate gate passes, and (c) the Intent Behavior Coverage table is satisfied. A `failed` shard re-enters the manifest as `pending` and is retried under the existing `GATEKEEPER.md → Retry Budget` (three attempts, then halt and classify) — there is no unbounded "iterate until it converges" loop. The bounded-loop rules are not relaxed by sharding.
+
+What Sharded Execution does **not** introduce: no scheduler, no agent count, no new artifact file (the manifest lives inside the verification log, consistent with "the Verification Log IS the status"), and no dependency on any host's parallel-execution capability.
 
 ### For Domains Without Traditional Build Commands
 
@@ -389,7 +407,7 @@ Artifact content quality is evaluated elsewhere. This gate checks existence only
 
 ## Self-Review Protocol
 
-After implementation, shift to Adversary Lens:
+After implementation, shift to Adversary Lens. Self-Review is the **author's** pass; it runs alongside the **Independent Review Protocol** below (defined in `REVIEWER.md`). The two are complementary, not redundant: Self-Review answers *did I deliver the Intent and clear the pitfalls*; Independent Review answers *what is wrong with this diff that the author cannot see*. Neither replaces GateKeeper, which proves a command exited cleanly without reading the logic.
 
 1. Re-read the Intent. Does the code deliver every Behavior described? Does it respect every Constraint? Then perform a **Behavior-to-Evidence Check**: for every Behavior in the Intent, add one row to the verification log's `Intent Behavior Coverage` table with `Verified` / `Provisional` / `Blocked` and a resoluble `Evidence` source. A passing gate row is not, by itself, proof that every Behavior is verified.
 2. Run every Automated Check from the domain profile (execute command, verify result)
@@ -414,6 +432,16 @@ After implementation, shift to Adversary Lens:
    If any is no → keep in the local profile. Add a one-line note explaining why it did not promote (e.g., "Detection command references project-specific path"). This closes the audit trail without requiring action.
 
    **For Full projects, this step is mandatory** — write "Promotion check: N candidates found, M promoted, K deferred (reason)" even if the result is zero.
+
+## Independent Review Protocol
+
+Self-Review has a structural limit: the author cannot reliably see the bugs they wrote. The Independent Review adds a reader who did not author the code and judges the **logic of the diff** — not whether a command exited (GateKeeper) and not whether the author thinks they met the Intent (Self-Review). The full role contract is `REVIEWER.md`; this section is the Builder-side hook.
+
+- **When:** optional for Quick, a focused blocking-findings pass for Standard, mandatory for Full. It runs after implementation, alongside Self-Review, before any "complete / ready / verified" claim.
+- **Independence by mode:** if delegation is available (see Mode Detection / Orchestrated Mode), run the review in a sub-agent with a **fresh context that did not write the code** — pass it only the diff, the Intent, and the profile pitfalls. This is preferred for Full. In Single-Agent mode, independence is procedural: review only the diff and Intent under the explicit stance "someone else wrote this," and require every finding to cite a `file:line` or Intent clause.
+- **Arbitration (prevents review thrash):** each finding gets a Severity (`Blocking` / `Non-blocking`) and a Disposition (`Fix now` / `Defer` / `Reject as noise` with a one-line reason). **Only `Blocking` findings gate completion.** A finding `Reject as noise` cannot be re-raised as `Blocking` in the same session without new evidence (same bounded-loop rationale as the Retry Budget).
+- **Output:** an `Independent Review` subsection under Self-Review in the verification log (no separate artifact). Findings carry Evidence States like every other claim.
+- **Completion:** a project may not be presented as complete while any `Blocking` finding is undispositioned, or `Fix now` and unfixed. This is enforced as invariant INV-6 in `ENFORCEMENT.md`.
 
 ## Profile Integrity Audit
 
